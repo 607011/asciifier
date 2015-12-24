@@ -64,7 +64,7 @@ class Asciifier:
     def to_postscript(self, paper):
         if paper is not None:
             self.paper = paper
-        paper_size = self.PAPER_SIZES[string.lower(paper)]
+        paper_size = self.PAPER_SIZES[string.lower(self.paper)]
         paper_width_points = Asciifier.mm_to_point(paper_size[0])
         paper_height_points = Asciifier.mm_to_point(paper_size[1])
         width_points = Asciifier.mm_to_point(paper_size[0] - 2 * self.margins[0])
