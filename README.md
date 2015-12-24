@@ -54,12 +54,17 @@ asciifier.py
   --resolution RESOLUTION
 ```
 
-IMAGE: filename of image to be converted
-OUT: name of file to write ASCII art to
-PSFONT: name of Postscript to use; only valid for postscript output
-RESOLUTION: number of characters per line (default: 80)
-PAPER: paper dimensions (default: a4); only valid for postscript output
-ASPECTRATIO: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
+`IMAGE`: filename of image to be converted
+
+`OUT`: name of file to write ASCII art to
+
+`PSFONT`: name of Postscript to use; only valid for postscript output
+
+`RESOLUTION`: number of characters per line (default: 80)
+
+`PAPER`: paper dimensions (default: a4); only valid for postscript output
+
+`ASPECTRATIO`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
 
 
 ### Examples
