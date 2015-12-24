@@ -13,7 +13,7 @@ import string
 import argparse
 
 
-class ASCIIfier:
+class Asciifier:
     PAPER_SIZES = {
         'a4': (210.0, 297.0),
         'a3': (297.0, 420.0),
@@ -25,22 +25,20 @@ class ASCIIfier:
     result = None
     font_name = 'Hack-Bold'
     margins = (10, 10)
-
+    paper_size = PAPER_SIZES['a4']
+    im = None
 
     def __init__(self, font_file):
         if font_file is not None:
             self.generate_luminosity_mapping(font_file)
 
-
     def set_paper_size(self, code):
-        self.paper_size = PAPER_SIZES[string.lower(code)]
-
+        self.paper_size = self.PAPER_SIZES[string.lower(code)]
 
     @staticmethod
     def mm_to_point(mm):
         return 2.834645669 * mm
 
-    
     def generate_luminosity_mapping(self, font_file):
         N = 64
         IMAGE_SIZE = (N, N)
@@ -58,27 +56,32 @@ class ASCIIfier:
             intensity.append({ 'l': l, 'c': chr(c)})
         self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
 
-
     def to_plain_text(self):
         return "\n".join([''.join(line) for line in self.result])
-
 
     def to_postscript(self, paper):
         if paper is None:
             paper = 'a4'
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        width_points = ASCIIfier.mm_to_point(paper_size[0] - 2 * self.margins[0])
-        height_points = ASCIIfier.mm_to_point(paper_size[1] - 2 * self.margins[1])
+        width_points = Asciifier.mm_to_point(paper_size[0] - 2 * self.margins[0])
+        height_points = Asciifier.mm_to_point(paper_size[1] - 2 * self.margins[1])
         grid_points = 12
         font_points = 12
         font = 'Hack-Bold'
         scale = width_points / (self.im.width * grid_points)
         lines = [
-            "%!",
+            "%!PS-Adobe-3.0",
+            "%%Orientation: Portrait",
+            "%%Pages: 1",
+            "%%EndComments",
+            "%%EndProlog",
+            "%%BeginSetup",
+            "  % A4, unrotated",
+            "  << /PageSize [595 842] /Orientation 0 >> setpagedevice",
+            "%%EndSetup",
             "%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG",
             "%Copyright: All rights reserved.",
             "% Image converted to ASCII by ascii-art.py",
-            "%%EndComments",
             "",
             "/%s findfont" % (font),
             "%d scalefont" % (font_points),
@@ -86,7 +89,7 @@ class ASCIIfier:
             "",
             "/pc { moveto show } def",
             "",
-            "%d %d translate" % (self.margins),
+            "%d %d translate" % self.margins,
             "%f %f scale" % (scale, scale)
         ]
         y = self.im.height * grid_points
@@ -107,7 +110,6 @@ class ASCIIfier:
         ]
         return "\n".join(lines)
     
-
     def process(self, image_filename, resolution):
         if resolution is None:
             resolution = 80
@@ -134,13 +136,13 @@ def main():
     parser.add_argument('--image', type=str, help='file name of image to be converted')
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
     parser.add_argument('--psfont', type=str, help='file name of Postscript font to use.')
-    parser.add_argument('--paper', type=str, choices=ASCIIfier.PAPER_CHOICES, help='paper size.')
+    parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
     args = parser.parse_args()
 
     font_path = args.psfont
         
-    asciifier = ASCIIfier(font_path)
+    asciifier = Asciifier(font_path)
     asciifier.process(args.image, args.resolution)
     with open(args.out, 'w+') as f:
         f.write(asciifier.to_postscript(args.paper))
