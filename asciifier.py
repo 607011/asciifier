@@ -7,6 +7,7 @@
 # All rights reserved.
 
 from PIL import Image, ImageFont, ImageDraw, ImageColor
+from datetime import datetime
 import os
 import sys
 import string
@@ -19,14 +20,15 @@ class Asciifier:
         'a3': (297.0, 420.0),
         'letter': (215.9, 279.4)
     }
+    TYPE_CHOICES = [ 'text', 'postscript' ]
     PAPER_CHOICES = PAPER_SIZES.keys()
-
-    luminosity = ['B', '@', 'M', 'Q', 'W', 'N', 'g', 'R', 'D', '#', 'H', 'O', '&', '0', 'K', '8', 'U', 'd', 'b', '6', 'p', 'q', '9', 'G', 'E', 'A', '$', 'm', 'h', 'P', 'Z', 'k', 'X', 'S', 'V', 'a', 'e', '5', '4', '3', 'y', 'w', '2', 'F', 'I', 'o', 'u', 'n', 'j', 'C', 'Y', '1', 'f', 't', 'J', '{', '}', 'z', '%', 'x', 'T', 's', 'l', '7', 'L', '[', 'v', ']', 'i', 'c', '=', ')', '(', '+', '|', '<', '>', 'r', '?', '*', '\\', '/', '!', ';', '"', '^', '~', '-', ':', '_', ',', "'", '.', '`', ' ']
+    paper = 'a4'
+    paper_size = PAPER_SIZES[paper]
     result = None
     font_name = 'Hack-Bold'
     margins = (10, 10)
-    paper_size = PAPER_SIZES['a4']
     im = None
+    luminosity = ['B', '@', 'M', 'Q', 'W', 'N', 'g', 'R', 'D', '#', 'H', 'O', '&', '0', 'K', '8', 'U', 'd', 'b', '6', 'p', 'q', '9', 'G', 'E', 'A', '$', 'm', 'h', 'P', 'Z', 'k', 'X', 'S', 'V', 'a', 'e', '5', '4', '3', 'y', 'w', '2', 'F', 'I', 'o', 'u', 'n', 'j', 'C', 'Y', '1', 'f', 't', 'J', '{', '}', 'z', '%', 'x', 'T', 's', 'l', '7', 'L', '[', 'v', ']', 'i', 'c', '=', ')', '(', '+', '|', '<', '>', 'r', '?', '*', '\\', '/', '!', ';', '"', '^', '~', '-', ':', '_', ',', "'", '.', '`', ' ']
 
     def __init__(self, font_file):
         if font_file is not None:
@@ -57,34 +59,39 @@ class Asciifier:
         self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
 
     def to_plain_text(self):
-        return "\n".join([''.join(line) for line in self.result])
+        return "\n".join([''.join(line).rstrip() for line in self.result])
 
     def to_postscript(self, paper):
-        if paper is None:
-            paper = 'a4'
+        if paper is not None:
+            self.paper = paper
         paper_size = self.PAPER_SIZES[string.lower(paper)]
+        paper_width_points = Asciifier.mm_to_point(paper_size[0])
+        paper_height_points = Asciifier.mm_to_point(paper_size[1])
         width_points = Asciifier.mm_to_point(paper_size[0] - 2 * self.margins[0])
         height_points = Asciifier.mm_to_point(paper_size[1] - 2 * self.margins[1])
         grid_points = 12
         font_points = 12
         font = 'Hack-Bold'
         scale = width_points / (self.im.width * grid_points)
+        now = datetime.today()
         lines = [
             "%!PS-Adobe-3.0",
-            "%%Orientation: Portrait",
+            "%%%%BoundingBox: 0 0 %d %d" % (width_points, height_points),
+            "%%Creator: asciifier",
+            "%%%%CreationDate: %s" % now.isoformat(),
+            "%%%%DocumentMedia: %s %d %d 80 white ()" % (self.paper, paper_width_points, paper_height_points),
             "%%Pages: 1",
             "%%EndComments",
-            "%%EndProlog",
             "%%BeginSetup",
             "  % A4, unrotated",
-            "  << /PageSize [595 842] /Orientation 0 >> setpagedevice",
+            "  << /PageSize [%d %d] /Orientation 0 >> setpagedevice" % (paper_width_points, paper_height_points),
             "%%EndSetup",
             "%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG",
             "%Copyright: All rights reserved.",
             "% Image converted to ASCII by ascii-art.py",
             "",
-            "/%s findfont" % (font),
-            "%d scalefont" % (font_points),
+            "/%s findfont" % font,
+            "%d scalefont" % font_points,
             "setfont",
             "",
             "/pc { moveto show } def",
@@ -110,11 +117,15 @@ class Asciifier:
         ]
         return "\n".join(lines)
     
-    def process(self, image_filename, resolution):
-        if resolution is None:
-            resolution = 80
+    def process(self, image_filename, **kwargs):
+        resolution = 80
+        if 'resolution' in kwargs:
+            resolution = kwargs['resolution']
         self.im = Image.open(image_filename)
-        self.im.thumbnail((resolution, self.im.height), Image.BILINEAR)
+        if 'aspect_ratio' in kwargs:
+            aspect_ratio = kwargs['aspect_ratio']
+            self.im = self.im.resize((int(self.im.width * aspect_ratio), self.im.height), Image.BILINEAR)
+        self.im.thumbnail((resolution, self.im.height), Image.ANTIALIAS)
         num_chars = len(self.luminosity)
         self.result = []
         scan_line = []
@@ -135,6 +146,8 @@ def main():
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
     parser.add_argument('--image', type=str, help='file name of image to be converted')
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
+    parser.add_argument('--type', type=str, choices=Asciifier.TYPE_CHOICES, help='output type.')
+    parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font.')
     parser.add_argument('--psfont', type=str, help='file name of Postscript font to use.')
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
@@ -143,9 +156,36 @@ def main():
     font_path = args.psfont
         
     asciifier = Asciifier(font_path)
-    asciifier.process(args.image, args.resolution)
-    with open(args.out, 'w+') as f:
-        f.write(asciifier.to_postscript(args.paper))
+
+    output_type = 'text'
+    if args.out is not None:
+        if args.out.endswith('.ps'):
+            output_type = 'postscript'
+    if args.type == 'postscript':
+        output_type = 'postscript'
+
+    aspect_ratio = 2.0
+    if args.aspect is not None:
+        aspect_ratio = args.aspect
+
+    resolution = 80
+    if args.resolution is not None:
+        resolution = args.resolution
+
+    if output_type == 'text':
+        asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
+        result = asciifier.to_plain_text()
+    elif output_type == 'postscript':
+        asciifier.process(args.image, resolution=resolution)
+        result = asciifier.to_postscript(args.paper)
+    else:
+        result = ''
+
+    if args.out is None:
+        print result
+    else:
+        with open(args.out, 'w+') as f:
+            f.write(result)
 
 
 if __name__ == '__main__':
