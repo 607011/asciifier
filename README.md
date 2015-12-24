@@ -4,8 +4,8 @@ Convert images to ASCII art
 
 ## Prerequisites:
 
-	- Python 2.7
-	- Pillow 3.x
+ - Python 2.7
+ - Pillow 3.x
 
 
 ## Installation
