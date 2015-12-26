@@ -22,8 +22,6 @@ class Asciifier:
     }
     TYPE_CHOICES = [ 'text', 'postscript' ]
     PAPER_CHOICES = PAPER_SIZES.keys()
-    paper = 'a4'
-    paper_size = PAPER_SIZES[paper]
     result = None
     font_name = 'Hack-Bold'
     margins = (10, 10)
@@ -34,21 +32,18 @@ class Asciifier:
         if font_file is not None:
             self.generate_luminosity_mapping(font_file)
 
-    def set_paper_size(self, code):
-        self.paper_size = self.PAPER_SIZES[string.lower(code)]
-
     @staticmethod
     def mm_to_point(mm):
         return 2.834645669 * mm
 
     def generate_luminosity_mapping(self, font_file):
-        N = 64
-        IMAGE_SIZE = (N, N)
-        font = ImageFont.truetype(font_file, int(3 * N / 4))
+        n = 64
+        image_size = (n, n)
+        font = ImageFont.truetype(font_file, int(3 * n / 4))
         self.luminosity = []
         intensity = []
         for c in range(32, 127):
-            image = Image.new('RGB', IMAGE_SIZE, ImageColor.getrgb('#ffffff'))
+            image = Image.new('RGB', image_size, ImageColor.getrgb('#ffffff'))
             draw = ImageDraw.Draw(image)
             draw.text((0, 0), chr(c), font=font, fill=(0, 0, 0))
             l = 0
@@ -61,17 +56,20 @@ class Asciifier:
     def to_plain_text(self):
         return "\n".join([''.join(line).rstrip() for line in self.result])
 
-    def to_postscript(self, paper):
-        if paper is not None:
-            self.paper = paper
-        paper_size = self.PAPER_SIZES[string.lower(self.paper)]
+    def to_postscript(self, **kwargs):
+        paper = 'a4'
+        if 'paper' in kwargs and kwargs['paper'] is not None:
+            paper = kwargs['paper']
+        font_name = 'Hack-Bold'
+        if 'font_name' in kwargs and kwargs['font_name'] is not None:
+            font_name = kwargs['font_name']
+        paper_size = self.PAPER_SIZES[string.lower(paper)]
         paper_width_points = Asciifier.mm_to_point(paper_size[0])
         paper_height_points = Asciifier.mm_to_point(paper_size[1])
         width_points = Asciifier.mm_to_point(paper_size[0] - 2 * self.margins[0])
         height_points = Asciifier.mm_to_point(paper_size[1] - 2 * self.margins[1])
         grid_points = 12
         font_points = 12
-        font = 'Hack-Bold'
         scale = width_points / (self.im.width * grid_points)
         now = datetime.today()
         lines = [
@@ -79,7 +77,7 @@ class Asciifier:
             "%%%%BoundingBox: 0 0 %d %d" % (width_points, height_points),
             "%%Creator: asciifier",
             "%%%%CreationDate: %s" % now.isoformat(),
-            "%%%%DocumentMedia: %s %d %d 80 white ()" % (self.paper, paper_width_points, paper_height_points),
+            "%%%%DocumentMedia: %s %d %d 80 white ()" % (paper, paper_width_points, paper_height_points),
             "%%Pages: 1",
             "%%EndComments",
             "%%BeginSetup",
@@ -90,7 +88,7 @@ class Asciifier:
             "%Copyright: All rights reserved.",
             "% Image converted to ASCII by ascii-art.py",
             "",
-            "/%s findfont" % font,
+            "/%s findfont" % font_name,
             "%d scalefont" % font_points,
             "setfont",
             "",
@@ -177,7 +175,7 @@ def main():
         result = asciifier.to_plain_text()
     elif output_type == 'postscript':
         asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_postscript(args.paper)
+        result = asciifier.to_postscript(paper=args.paper, font_name=args.psfont)
     else:
         result = ''
 
