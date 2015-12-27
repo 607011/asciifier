@@ -22,11 +22,14 @@ class Asciifier:
     }
     TYPE_CHOICES = [ 'text', 'postscript' ]
     PAPER_CHOICES = PAPER_SIZES.keys()
-    result = None
-    font_name = 'Hack-Bold'
+    result = [[]]
     margins = (10, 10)
     im = None
-    luminosity = ['B', '@', 'M', 'Q', 'W', 'N', 'g', 'R', 'D', '#', 'H', 'O', '&', '0', 'K', '8', 'U', 'd', 'b', '6', 'p', 'q', '9', 'G', 'E', 'A', '$', 'm', 'h', 'P', 'Z', 'k', 'X', 'S', 'V', 'a', 'e', '5', '4', '3', 'y', 'w', '2', 'F', 'I', 'o', 'u', 'n', 'j', 'C', 'Y', '1', 'f', 't', 'J', '{', '}', 'z', '%', 'x', 'T', 's', 'l', '7', 'L', '[', 'v', ']', 'i', 'c', '=', ')', '(', '+', '|', '<', '>', 'r', '?', '*', '\\', '/', '!', ';', '"', '^', '~', '-', ':', '_', ',', "'", '.', '`', ' ']
+    luminosity = ['B', '@', 'M', 'Q', 'W', 'N', 'g', 'R', 'D', '#', 'H', 'O', '&', '0', 'K', '8', 'U', 'd', 'b', '6',
+                  'p', 'q', '9', 'G', 'E', 'A', '$', 'm', 'h', 'P', 'Z', 'k', 'X', 'S', 'V', 'a', 'e', '5', '4', '3',
+                  'y', 'w', '2', 'F', 'I', 'o', 'u', 'n', 'j', 'C', 'Y', '1', 'f', 't', 'J', '{', '}', 'z', '%', 'x',
+                  'T', 's', 'l', '7', 'L', '[', 'v', ']', 'i', 'c', '=', ')', '(', '+', '|', '<', '>', 'r', '?', '*',
+                  '\\', '/', '!', ';', '"', '^', '~', '-', ':', '_', ',', "'", '.', '`', ' ']
 
     def __init__(self, font_file):
         if font_file is not None:
@@ -50,19 +53,16 @@ class Asciifier:
             for pixel in image.getdata():
                 r, g, b = pixel
                 l += 0.2126 * r + 0.7152 * g + 0.0722 * b
-            intensity.append({ 'l': l, 'c': chr(c)})
+            intensity.append({l: l, c: chr(c)})
         self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
 
     def to_plain_text(self):
-        return "\n".join([''.join(line).rstrip() for line in self.result])
+        txt = zip(*self.result)
+        return "\n".join([''.join(line).rstrip() for line in txt])
 
     def to_postscript(self, **kwargs):
-        paper = 'a4'
-        if 'paper' in kwargs and kwargs['paper'] is not None:
-            paper = kwargs['paper']
-        font_name = 'Hack-Bold'
-        if 'font_name' in kwargs and kwargs['font_name'] is not None:
-            font_name = kwargs['font_name']
+        paper = kwargs.get('paper', 'a4')
+        font_name = kwargs.get('font_name', 'Hack-Bold')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
         paper_width_points = Asciifier.mm_to_point(paper_size[0])
         paper_height_points = Asciifier.mm_to_point(paper_size[1])
@@ -86,7 +86,7 @@ class Asciifier:
             "%%EndSetup",
             "%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG",
             "%Copyright: All rights reserved.",
-            "% Image converted to ASCII by ascii-art.py",
+            "% Image converted to ASCII by asciifier.py (https://github.com/ola-ct/asciifier)",
             "",
             "/%s findfont" % font_name,
             "%d scalefont" % font_points,
@@ -97,49 +97,44 @@ class Asciifier:
             "%d %d translate" % self.margins,
             "%f %f scale" % (scale, scale)
         ]
-        y = self.im.height * grid_points
-        for scan_line in self.result:
-            x = 0
-            for c in scan_line:
+        for y in range(0, self.im.height):
+            for x in range(0, self.im.width):
+                c = self.result[x][y]
                 if c != ' ':
                     c = string.replace(c, '\\', "\\\\")
                     c = string.replace(c, '(', "\\(")
                     c = string.replace(c, ')', "\\)")
-                    lines.append("(%s) %d %d pc" % (c, x, y))
-                x += grid_points
-            y -= grid_points
-        
+                    lines.append("(%s) %d %d pc" % (c, x * grid_points, (self.im.height - y) * grid_points))
+
         lines += [
             "",
             "showpage"
         ]
         return "\n".join(lines)
-    
+
     def process(self, image_filename, **kwargs):
-        resolution = 80
-        if 'resolution' in kwargs:
-            resolution = kwargs['resolution']
         self.im = Image.open(image_filename)
         if 'aspect_ratio' in kwargs:
-            aspect_ratio = kwargs['aspect_ratio']
-            self.im = self.im.resize((int(self.im.width * aspect_ratio), self.im.height), Image.BILINEAR)
+            self.im = self.im.resize((int(self.im.width * kwargs['aspect_ratio']), self.im.height), Image.BILINEAR)
+        resolution = kwargs.get('resolution', 80)
         self.im.thumbnail((resolution, self.im.height), Image.ANTIALIAS)
         num_chars = len(self.luminosity)
-        self.result = []
-        scan_line = []
-        w = 0
-        for pixel in self.im.getdata():
-            r, g, b = pixel
-            l = 0.2126 * r + 0.7152 * g + 0.0722 * b
-            i = int(l * num_chars / 255)
-            scan_line.append(self.luminosity[i])
-            w += 1
-            if w >= self.im.width:
-                self.result.append(scan_line)
-                scan_line = []
-                w = 0
-    
-    
+        self.result = [[' ' for x in range(self.im.height)] for x in range(self.im.width)]
+        for y in range(0, self.im.height):
+            for x in range(0, self.im.width):
+                r, g, b = self.im.getpixel((x, y))
+                l = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                self.result[x][y] = self.luminosity[int(l * num_chars / 255)]
+        for y in range(1, self.im.height - 1):
+            for x in range(1, self.im.width - 1):
+                if self.result[x][y] in ['‘', '’', '`'] and self.result[x][y - 1] == ' ':
+                        self.result[x][y] = '.'
+                elif self.result[x][y] == [','] and self.result[x][y + 1] == ' ':
+                        self.result[x][y] = "'"
+                elif self.result[x][y] == ['_'] and self.result[x][y + 1] == ' ':
+                        self.result[x][y] = "~"
+
+
 def main():
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
     parser.add_argument('--image', type=str, help='file name of image to be converted')
