@@ -8,8 +8,6 @@
 
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from datetime import datetime
-import os
-import sys
 import string
 import argparse
 
