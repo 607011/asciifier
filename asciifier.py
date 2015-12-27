@@ -34,7 +34,7 @@ class Asciifier:
                   'p', 'q', '9', 'G', 'E', 'A', '$', 'm', 'h', 'P', 'Z', 'k', 'X', 'S', 'V', 'a', 'e', '5', '4', '3',
                   'y', 'w', '2', 'F', 'I', 'o', 'u', 'n', 'j', 'C', 'Y', '1', 'f', 't', 'J', '{', '}', 'z', '%', 'x',
                   'T', 's', 'l', '7', 'L', '[', 'v', ']', 'i', 'c', '=', ')', '(', '+', '|', '<', '>', 'r', '?', '*',
-                  '\\', '/', '!', ';', '"', '^', '~', '-', ':', '_', ',', "'", '.', '`', ' ']
+                  '/', '!', ';', '~', '-', ':', '.', ' ']
 
     def __init__(self, font_file):
         if font_file is not None:
@@ -130,14 +130,6 @@ class Asciifier:
                 r, g, b = self.im.getpixel((x, y))
                 l = 0.2126 * r + 0.7152 * g + 0.0722 * b
                 self.result[x][y] = self.luminosity[int(l * num_chars / 255)]
-        for y in range(1, self.im.height - 1):
-            for x in range(1, self.im.width - 1):
-                if self.result[x][y] in ['‘', '’', '`'] and self.result[x][y - 1] == ' ':
-                        self.result[x][y] = '.'
-                elif self.result[x][y] == [','] and self.result[x][y + 1] == ' ':
-                        self.result[x][y] = "'"
-                elif self.result[x][y] == ['_'] and self.result[x][y + 1] == ' ':
-                        self.result[x][y] = "~"
 
 
 def main():
