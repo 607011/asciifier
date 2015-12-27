@@ -121,13 +121,14 @@ class Asciifier:
             self.im = self.im.resize((int(self.im.width * kwargs['aspect_ratio']), self.im.height), Image.BILINEAR)
         resolution = kwargs.get('resolution', 80)
         self.im.thumbnail((resolution, self.im.height), Image.ANTIALIAS)
-        num_chars = len(self.luminosity)
-        self.result = [[' ' for x in range(self.im.height)] for x in range(self.im.width)]
-        for x in range(0, self.im.width):
-            for y in range(0, self.im.height):
+        w, h = self.im.size
+        nchars = len(self.luminosity)
+        self.result = [x[:] for x in [[' '] * h] * w]
+        for x in range(0, w):
+            for y in range(0, h):
                 r, g, b = self.im.getpixel((x, y))
                 l = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                self.result[x][y] = self.luminosity[int(l * num_chars / 255)]
+                self.result[x][y] = self.luminosity[int(l * nchars / 255)]
 
 
 def main():
