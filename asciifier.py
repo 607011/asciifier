@@ -105,16 +105,18 @@ class Asciifier:
         stream = zlib.compress('\n'.join(stream_lines), 9)
         blocks = [
             [
-                '%PDF-1.4'
+                '%PDF-1.4',
+                '%%Creator: asciifier',
+                '%%CreationDate: {}'.format(datetime.today().isoformat()),
             ],
             [
-                '1 0 obj << /Type/Catalog/Pages 3 0 R >> endobj',
+                '1 0 obj<< /Type/Catalog/Pages 3 0 R >>endobj',
             ],
             [
-                '2 0 obj << /Type/Pages/Count 1 /Kids [3 0 R] >> endobj',
+                '2 0 obj<< /Type/Pages/Count 1 /Kids [3 0 R] >>endobj',
             ],
             [
-                '3 0 obj << /Type/Page',
+                '3 0 obj<< /Type/Page',
                 '     /MediaBox [0 0 {} {}]'.format(int(paper_width_pt), int(paper_height_pt)),
                 '     /Parent 2 0 R',
                 '     /Resources << /Font << /F1 4 0 R >> >>',
@@ -123,13 +125,10 @@ class Asciifier:
                 'endobj',
             ],
             [
-                '4 0 obj << /Type/Font /Subtype/Type1 /Name/F1 /BaseFont/{} >>'.format(font_name),
-                'endobj',
+                '4 0 obj<< /Type/Font /Subtype/Type1 /Name/F1 /BaseFont/{} >>endobj'.format(font_name),
             ],
             [
-                '5 0 obj',
-                '  << /Length {} /Filter [/ASCII85Decode/FlateDecode] >>'.format(len(stream)),
-                'stream',
+                '5 0 obj<< /Length {} /Filter [/ASCII85Decode/FlateDecode] >>stream'.format(len(stream)),
                 base85.b85encode(stream),
                 'endstream',
                 'endobj',
@@ -145,7 +144,7 @@ class Asciifier:
             '{0:010d} 00000 n'.format(blockoffsets[2]),
             '{0:010d} 00000 n'.format(blockoffsets[3]),
             '{0:010d} 00000 n'.format(blockoffsets[4]),
-            'trailer << /Root 1 0 R /Size 6 >>',
+            'trailer<< /Root 1 0 R /Size 6 >>',
             'startxref',
             '{}'.format(blockoffsets[5]),
             '%%EOF'
@@ -172,10 +171,10 @@ class Asciifier:
         offset = (self.margins[0] + (width_pt - w * scale) / 2, self.margins[1] + (height_pt - h * scale) / 2)
         lines = [
             '%!PS-Adobe-3.0',
-            '%%%%BoundingBox: 0 0 {} {}'.format(size[0], size[1]),
+            '%%BoundingBox: 0 0 {} {}'.format(size[0], size[1]),
             '%%Creator: asciifier',
-            '%%%%CreationDate: {}'.format(now.isoformat()),
-            '%%%%DocumentMedia: {} {} {} 80 white ()'.format(paper, paper_width_pt, paper_height_pt),
+            '%%CreationDate: {}'.format(now.isoformat()),
+            '%%DocumentMedia: {} {} {} 80 white ()'.format(paper, paper_width_pt, paper_height_pt),
             '%%Pages: 1',
             '%%EndComments',
             '%%BeginSetup',
@@ -196,13 +195,11 @@ class Asciifier:
             '{} {} scale'.format(scale, scale)
         ]
         for y in range(0, self.im.height):
+            yoff = (self.im.height - y) * grid_pt
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
-                    c = string.replace(c, '\\', '\\\\')
-                    c = string.replace(c, '(', '\\(')
-                    c = string.replace(c, ')', '\\)')
-                    lines.append('({}) {} {} c'.format(c, x * grid_pt, (self.im.height - y) * grid_pt))
+                    lines.append('({}) {} {} c'.format(c, x * grid_pt, yoff))
 
         lines += [
             '',
