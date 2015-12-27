@@ -11,7 +11,6 @@ from datetime import datetime
 from math import ceil
 import string
 import argparse
-import zlib
 
 
 def cumsum(arr):
@@ -21,6 +20,10 @@ def cumsum(arr):
         s += x
         result.append(s)
     return result
+
+
+def mm_to_pt(mm):
+    return 2.834645669 * mm
 
 
 class Asciifier:
@@ -48,10 +51,6 @@ class Asciifier:
     def __init__(self):
         pass
 
-    @staticmethod
-    def mm_to_pt(mm):
-        return 2.834645669 * mm
-
     def generate_luminosity_mapping(self, font_file):
         n = 64
         image_size = (n, n)
@@ -75,13 +74,14 @@ class Asciifier:
 
     def to_pdf(self, **kwargs):
         from mom.codec import base85
+        import zlib
         paper = kwargs.get('paper', 'a4')
         font_name = kwargs.get('font_name', 'Times-Roman')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_width_pt = Asciifier.mm_to_pt(paper_size[0])
-        paper_height_pt = Asciifier.mm_to_pt(paper_size[1])
-        size_pt = (ceil(paper_width_pt - 2 * Asciifier.mm_to_pt(self.margins[0])),
-                   ceil(paper_height_pt - 2 * Asciifier.mm_to_pt(self.margins[1])))
+        paper_width_pt = mm_to_pt(paper_size[0])
+        paper_height_pt = mm_to_pt(paper_size[1])
+        size_pt = (ceil(paper_width_pt - 2 * mm_to_pt(self.margins[0])),
+                   ceil(paper_height_pt - 2 * mm_to_pt(self.margins[1])))
         width_pt = size_pt[0]
         height_pt = size_pt[1]
         grid_pt = 12
@@ -102,42 +102,28 @@ class Asciifier:
                                                 int(xoff + x * grid_pt),
                                                 yy,
                                                 c))
-        stream = zlib.compress('\n'.join(stream_lines))
+        stream = zlib.compress('\n'.join(stream_lines), 9)
         blocks = [
             [
-                '%PDF-1.4',
-                '%¥±ë',
+                '%PDF-1.4'
             ],
             [
-                '1 0 obj',
-                '  << /Type/Catalog/Pages 3 0 R >>',
-                'endobj',
+                '1 0 obj << /Type/Catalog/Pages 3 0 R >> endobj',
             ],
             [
-                '2 0 obj',
-                '  << /Type/Pages/Count 1',
-                '     /Kids [3 0 R]',
-                '  >>',
-                'endobj',
+                '2 0 obj << /Type/Pages/Count 1 /Kids [3 0 R] >> endobj',
             ],
             [
-                '3 0 obj',
-                '  << /Type/Page',
+                '3 0 obj << /Type/Page',
                 '     /MediaBox [0 0 {} {}]'.format(int(paper_width_pt), int(paper_height_pt)),
                 '     /Parent 2 0 R',
-                '     /Resources',
-                '     << /Font << /F1 4 0 R >>',
-                '     >>',
+                '     /Resources << /Font << /F1 4 0 R >> >>',
                 '     /Contents 5 0 R',
                 '  >>',
                 'endobj',
             ],
             [
-                '4 0 obj',
-                '  << /Type/Font',
-                '     /Subtype/Type1',
-                '     /Name/F1',
-                '     /BaseFont/{}'.format(font_name),
+                '4 0 obj << /Type/Font /Subtype/Type1 /Name/F1 /BaseFont/{} >>'.format(font_name),
                 'endobj',
             ],
             [
@@ -149,9 +135,7 @@ class Asciifier:
                 'endobj',
             ],
         ]
-
-        blocklengths = map(lambda b: len(b), map(lambda block: '\n'.join(block), blocks))
-        blockoffsets = cumsum(blocklengths)
+        blockoffsets = cumsum(map(lambda b: len(b), map(lambda block: '\n'.join(block), blocks)))
         xref = [
             'xref',
             '0 6',
@@ -161,26 +145,22 @@ class Asciifier:
             '{0:010d} 00000 n'.format(blockoffsets[2]),
             '{0:010d} 00000 n'.format(blockoffsets[3]),
             '{0:010d} 00000 n'.format(blockoffsets[4]),
-            'trailer',
-            '  <<  /Root 1 0 R',
-            '      /Size 6',
-            '  >>',
+            'trailer << /Root 1 0 R /Size 6 >>',
             'startxref',
             '{}'.format(blockoffsets[5]),
             '%%EOF'
         ]
         blocks.append(xref)
-        blocks = map(lambda l: '\n'.join(l), blocks)
-        return '\n'.join(blocks)
+        return '\n'.join(map(lambda l: '\n'.join(l), blocks))
 
     def to_postscript(self, **kwargs):
         paper = kwargs.get('paper', 'a4')
         font_name = kwargs.get('font_name', 'Times-Roman')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_width_pt = Asciifier.mm_to_pt(paper_size[0])
-        paper_height_pt = Asciifier.mm_to_pt(paper_size[1])
-        size_pt = (ceil(paper_width_pt - 2 * Asciifier.mm_to_pt(self.margins[0])),
-                   ceil(paper_height_pt - 2 * Asciifier.mm_to_pt(self.margins[1])))
+        paper_width_pt = mm_to_pt(paper_size[0])
+        paper_height_pt = mm_to_pt(paper_size[1])
+        size_pt = (ceil(paper_width_pt - 2 * mm_to_pt(self.margins[0])),
+                   ceil(paper_height_pt - 2 * mm_to_pt(self.margins[1])))
         width_pt = size_pt[0]
         height_pt = size_pt[1]
         grid_pt = 12
@@ -238,7 +218,7 @@ class Asciifier:
         self.im.thumbnail((resolution, self.im.height), Image.ANTIALIAS)
         w, h = self.im.size
         nchars = len(self.luminosity)
-        self.result = [x[:] for x in [[' '] * h] * w]
+        self.result = [a[:] for a in [[' '] * h] * w]
         for x in range(0, w):
             for y in range(0, h):
                 r, g, b = self.im.getpixel((x, y))
