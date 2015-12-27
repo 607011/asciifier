@@ -125,8 +125,8 @@ class Asciifier:
         self.im.thumbnail((resolution, self.im.height), Image.ANTIALIAS)
         num_chars = len(self.luminosity)
         self.result = [[' ' for x in range(self.im.height)] for x in range(self.im.width)]
-        for y in range(0, self.im.height):
-            for x in range(0, self.im.width):
+        for x in range(0, self.im.width):
+            for y in range(0, self.im.height):
                 r, g, b = self.im.getpixel((x, y))
                 l = 0.2126 * r + 0.7152 * g + 0.0722 * b
                 self.result[x][y] = self.luminosity[int(l * num_chars / 255)]
@@ -148,8 +148,7 @@ def main():
     asciifier = Asciifier(font_path)
 
     output_type = 'text'
-    if args.out is not None:
-        if args.out.endswith('.ps'):
+    if args.out is not None and args.out.endswith('.ps'):
             output_type = 'postscript'
     if args.type == 'postscript':
         output_type = 'postscript'
