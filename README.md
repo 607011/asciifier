@@ -13,9 +13,10 @@
 ### Windows
 
 [Get Python 2.7.11](https://www.python.org/downloads/release/python-2711/) or later from
-[python.org download page](https://www.python.org/downloads/). Install Python into folder D:\Python27, for example.
+[python.org download page](https://www.python.org/downloads/).
+Install Python into a folder of your choice, e.g. D:\Python27.
 
-Then install the Python Imaging Library:
+Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow) on the command line by typing:
 
 ```
 D:\Python27\Scripts\pip.exe install Pillow
@@ -26,7 +27,7 @@ D:\Python27\Scripts\pip.exe install Pillow
 
 Install Python 2.x with your distribution specific package manager.
 
-Then install the Python Imaging Library:
+Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow):
 
 ```
 pip install Pillow
