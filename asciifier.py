@@ -25,7 +25,7 @@ class Asciifier:
         'a0': (841, 1189),
         'letter': (215.9, 279.4)
     }
-    TYPE_CHOICES = [ 'text', 'postscript' ]
+    TYPE_CHOICES = ['text', 'postscript']
     PAPER_CHOICES = PAPER_SIZES.keys()
     result = [[]]
     margins = (10, 10)
