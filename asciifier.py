@@ -143,12 +143,12 @@ def main():
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
     parser.add_argument('--type', type=str, choices=Asciifier.TYPE_CHOICES, help='output type.')
     parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font.')
-    parser.add_argument('--psfont', type=str, help='file name of Postscript font to use.')
+    parser.add_argument('--font', type=str, help='file name of font to be used.')
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
     args = parser.parse_args()
 
-    font_path = args.psfont
+    font_path = args.font
         
     asciifier = Asciifier(font_path)
 
