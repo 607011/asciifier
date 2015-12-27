@@ -76,7 +76,7 @@ class Asciifier:
         from mom.codec import base85
         import zlib
         paper = kwargs.get('paper', 'a4')
-        font_name = kwargs.get('font_name', 'Times-Roman')
+        font_name = kwargs.get('font_name', 'Courier')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
         paper_width_pt = mm_to_pt(paper_size[0])
         paper_height_pt = mm_to_pt(paper_size[1])
