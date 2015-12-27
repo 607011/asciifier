@@ -73,7 +73,7 @@ asciifier.py
 
 ### Examples
 
-![Toad](images/toad.png)
+![Toad](examples/images/toad.png)
 
 Convert image to PDF, fitted to DIN A2 paper (default is A4),
 with 120 characters per line (default is 80);
