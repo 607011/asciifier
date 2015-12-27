@@ -12,9 +12,8 @@
 
 ### Windows
 
-[Get Python 2.7.11](https://www.python.org/downloads/release/python-2711/) or later from [python.org download page](https://www.python.org/downloads/).
-
-Install it e.g. into folder D:\Python27.
+[Get Python 2.7.11](https://www.python.org/downloads/release/python-2711/) or later from
+[python.org download page](https://www.python.org/downloads/). Install Python into folder D:\Python27, for example.
 
 Then install the Python Imaging Library:
 
@@ -35,12 +34,17 @@ pip install Pillow
 
 ## Download
 
-[Download asciifier.py](https://raw.githubusercontent.com/ola-ct/asciifier/master/asciifier.py) from the [ASCIIfier repository](https://github.com/ola-ct/asciifier) or do 
+[Download asciifier.py](https://raw.githubusercontent.com/ola-ct/asciifier/master/asciifier.py) from the
+[ASCIIfier repository](https://github.com/ola-ct/asciifier) or do
 
 `git clone https://github.com/ola-ct/asciifier.git`
 
+to clone the repository into a local folder.
+
 
 ## Usage
+
+### General usage
 
 ```
 asciifier.py 
