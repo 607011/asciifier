@@ -91,87 +91,85 @@ class Asciifier:
         yoff = self.margins[1] + (height_pt - h * scale) / 2
         stream_lines = []
         for y in range(0, self.im.height):
+            yy = int(yoff + (self.im.height - y) * grid_pt)
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
-                    c = string.replace(c, '(', "\\(")
-                    c = string.replace(c, ')', "\\)")
                     stream_lines.append('BT /F1 {} Tf {} {} Td ({}) Tj ET'
                                         .format(font_pt,
                                                 int(xoff + x * grid_pt),
-                                                int(yoff + (self.im.height - y) * grid_pt),
+                                                yy,
                                                 c))
         stream = '\n'.join(stream_lines)
         blocks = [
             [
-                "%PDF-1.4",
-                "%¥±ë",
+                '%PDF-1.4',
+                '%¥±ë',
             ],
             [
-                "1 0 obj",
-                "  << /Type/Catalog/Pages 3 0 R >>",
-                "endobj",
+                '1 0 obj',
+                '  << /Type/Catalog/Pages 3 0 R >>',
+                'endobj',
             ],
             [
-                "2 0 obj",
-                "  << /Type/Pages/Count 1",
-                "     /Kids [3 0 R]",
-                "  >>",
-                "endobj",
+                '2 0 obj',
+                '  << /Type/Pages/Count 1',
+                '     /Kids [3 0 R]',
+                '  >>',
+                'endobj',
             ],
             [
-                "3 0 obj",
-                "  << /Type/Page",
-                "     /MediaBox [0 0 {} {}]".format(int(paper_width_pt), int(paper_height_pt)),
-                "     /Parent 2 0 R",
-                "     /Resources",
-                "     << /Font << /F1 4 0 R >>",
-                "     >>",
-                "     /Contents 5 0 R",
-                "  >>",
-                "endobj",
+                '3 0 obj',
+                '  << /Type/Page',
+                '     /MediaBox [0 0 {} {}]'.format(int(paper_width_pt), int(paper_height_pt)),
+                '     /Parent 2 0 R',
+                '     /Resources',
+                '     << /Font << /F1 4 0 R >>',
+                '     >>',
+                '     /Contents 5 0 R',
+                '  >>',
+                'endobj',
             ],
             [
-                "4 0 obj",
-                "  << /Type/Font",
-                "     /Subtype/Type1",
-                "     /Name/F1",
-                "     /BaseFont/{}".format(font_name),
-                "endobj",
+                '4 0 obj',
+                '  << /Type/Font',
+                '     /Subtype/Type1',
+                '     /Name/F1',
+                '     /BaseFont/{}'.format(font_name),
+                'endobj',
             ],
             [
-                "5 0 obj",
-                "  << /Length {} >>".format(len(stream)),
-                "stream",
+                '5 0 obj',
+                '  << /Length {} >>'.format(len(stream)),
+                'stream',
                 stream,
-                "endstream",
-                "endobj",
+                'endstream',
+                'endobj',
             ],
         ]
 
         blocklengths = map(lambda b: len(b), map(lambda block: '\n'.join(block), blocks))
         blockoffsets = cumsum(blocklengths)
         xref = [
-            "xref",
-            "0 6",
-            "{0:010d} 65535 f".format(0),
-            "{0:010d} 00000 n".format(blockoffsets[0]),
-            "{0:010d} 00000 n".format(blockoffsets[1]),
-            "{0:010d} 00000 n".format(blockoffsets[2]),
-            "{0:010d} 00000 n".format(blockoffsets[3]),
-            "{0:010d} 00000 n".format(blockoffsets[4]),
-            "trailer",
-            "  <<  /Root 1 0 R",
-            "      /Size 6",
-            "  >>",
-            "startxref",
-            "{}".format(blockoffsets[5]),
-            "%%EOF"
+            'xref',
+            '0 6',
+            '{0:010d} 65535 f'.format(0),
+            '{0:010d} 00000 n'.format(blockoffsets[0]),
+            '{0:010d} 00000 n'.format(blockoffsets[1]),
+            '{0:010d} 00000 n'.format(blockoffsets[2]),
+            '{0:010d} 00000 n'.format(blockoffsets[3]),
+            '{0:010d} 00000 n'.format(blockoffsets[4]),
+            'trailer',
+            '  <<  /Root 1 0 R',
+            '      /Size 6',
+            '  >>',
+            'startxref',
+            '{}'.format(blockoffsets[5]),
+            '%%EOF'
         ]
-
         blocks.append(xref)
-        blocks = map(lambda l: "\n".join(l), blocks)
-        return "\n".join(blocks)
+        blocks = map(lambda l: '\n'.join(l), blocks)
+        return '\n'.join(blocks)
 
     def to_postscript(self, **kwargs):
         paper = kwargs.get('paper', 'a4')
@@ -191,44 +189,44 @@ class Asciifier:
         now = datetime.today()
         offset = (self.margins[0] + (width_pt - w * scale) / 2, self.margins[1] + (height_pt - h * scale) / 2)
         lines = [
-            "%!PS-Adobe-3.0",
-            "%%%%BoundingBox: 0 0 {} {}".format(size[0], size[1]),
-            "%%Creator: asciifier",
-            "%%%%CreationDate: {}".format(now.isoformat()),
-            "%%%%DocumentMedia: {} {} {} 80 white ()".format(paper, paper_width_pt, paper_height_pt),
-            "%%Pages: 1",
-            "%%EndComments",
-            "%%BeginSetup",
-            "  % A4, unrotated",
-            "  << /PageSize [{} {}] /Orientation 0 >> setpagedevice".format(paper_width_pt, paper_height_pt),
-            "%%EndSetup",
-            "%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG",
-            "%Copyright: All rights reserved.",
-            "% Image converted to ASCII by asciifier.py (https://github.com/ola-ct/asciifier)",
-            "",
-            "/{} findfont".format(font_name),
-            "{} scalefont".format(font_pt),
-            "setfont",
-            "",
-            "/c { moveto show } def",
-            "",
-            "{} {} translate".format(offset[0], offset[1]),
-            "{} {} scale".format(scale, scale)
+            '%!PS-Adobe-3.0',
+            '%%%%BoundingBox: 0 0 {} {}'.format(size[0], size[1]),
+            '%%Creator: asciifier',
+            '%%%%CreationDate: {}'.format(now.isoformat()),
+            '%%%%DocumentMedia: {} {} {} 80 white ()'.format(paper, paper_width_pt, paper_height_pt),
+            '%%Pages: 1',
+            '%%EndComments',
+            '%%BeginSetup',
+            '  % A4, unrotated',
+            '  << /PageSize [{} {}] /Orientation 0 >> setpagedevice'.format(paper_width_pt, paper_height_pt),
+            '%%EndSetup',
+            '%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG',
+            '%Copyright: All rights reserved.',
+            '% Image converted to ASCII by asciifier.py (https://github.com/ola-ct/asciifier)',
+            '',
+            '/{} findfont'.format(font_name),
+            '{} scalefont'.format(font_pt),
+            'setfont',
+            '',
+            '/c { moveto show } def',
+            '',
+            '{} {} translate'.format(offset[0], offset[1]),
+            '{} {} scale'.format(scale, scale)
         ]
         for y in range(0, self.im.height):
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
-                    c = string.replace(c, '\\', "\\\\")
-                    c = string.replace(c, '(', "\\(")
-                    c = string.replace(c, ')', "\\)")
-                    lines.append("({}) {} {} c".format(c, x * grid_pt, (self.im.height - y) * grid_pt))
+                    c = string.replace(c, '\\', '\\\\')
+                    c = string.replace(c, '(', '\\(')
+                    c = string.replace(c, ')', '\\)')
+                    lines.append('({}) {} {} c'.format(c, x * grid_pt, (self.im.height - y) * grid_pt))
 
         lines += [
-            "",
-            "showpage"
+            '',
+            'showpage'
         ]
-        return "\n".join(lines)
+        return '\n'.join(lines)
 
     def process(self, image_filename, **kwargs):
         self.im = Image.open(image_filename)
@@ -289,7 +287,7 @@ def main():
         asciifier.process(args.image, resolution=resolution)
         result = asciifier.to_pdf(paper=args.paper, font_name=args.font)
     else:
-        result = ''
+        result = '<invalid type>'
 
     if args.out is None:
         print result
