@@ -11,6 +11,7 @@ from datetime import datetime
 from math import ceil
 import string
 import argparse
+import zlib
 
 
 def cumsum(arr):
@@ -73,6 +74,7 @@ class Asciifier:
         return '\n'.join([''.join(line).rstrip() for line in txt])
 
     def to_pdf(self, **kwargs):
+        from mom.codec import base85
         paper = kwargs.get('paper', 'a4')
         font_name = kwargs.get('font_name', 'Times-Roman')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
@@ -100,7 +102,7 @@ class Asciifier:
                                                 int(xoff + x * grid_pt),
                                                 yy,
                                                 c))
-        stream = '\n'.join(stream_lines)
+        stream = zlib.compress('\n'.join(stream_lines))
         blocks = [
             [
                 '%PDF-1.4',
@@ -140,9 +142,9 @@ class Asciifier:
             ],
             [
                 '5 0 obj',
-                '  << /Length {} >>'.format(len(stream)),
+                '  << /Length {} /Filter [/ASCII85Decode/FlateDecode] >>'.format(len(stream)),
                 'stream',
-                stream,
+                base85.b85encode(stream),
                 'endstream',
                 'endobj',
             ],
