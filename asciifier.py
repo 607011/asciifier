@@ -8,6 +8,7 @@
 
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from datetime import datetime
+from math import ceil
 import string
 import argparse
 
@@ -39,7 +40,7 @@ class Asciifier:
             self.generate_luminosity_mapping(font_file)
 
     @staticmethod
-    def mm_to_point(mm):
+    def mm_to_pt(mm):
         return 2.834645669 * mm
 
     def generate_luminosity_mapping(self, font_file):
@@ -67,37 +68,42 @@ class Asciifier:
         paper = kwargs.get('paper', 'a4')
         font_name = kwargs.get('font_name', 'Hack-Bold')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_width_points = Asciifier.mm_to_point(paper_size[0])
-        paper_height_points = Asciifier.mm_to_point(paper_size[1])
-        width_points = Asciifier.mm_to_point(paper_size[0] - 2 * self.margins[0])
-        height_points = Asciifier.mm_to_point(paper_size[1] - 2 * self.margins[1])
-        grid_points = 12
-        font_points = 12
-        scale = width_points / (self.im.width * grid_points)
+        paper_width_pt = Asciifier.mm_to_pt(paper_size[0])
+        paper_height_pt = Asciifier.mm_to_pt(paper_size[1])
+        size_pt = (ceil(paper_width_pt - 2 * Asciifier.mm_to_pt(self.margins[0])),
+                   ceil(paper_height_pt - 2 * Asciifier.mm_to_pt(self.margins[1])))
+        width_pt = size_pt[0]
+        height_pt = size_pt[1]
+        grid_pt = 12
+        font_pt = 12
+        size = self.im.width * grid_pt, self.im.height * grid_pt
+        w, h = size
+        scale = width_pt / w
         now = datetime.today()
+        offset = (self.margins[0] + (width_pt - w * scale) / 2, self.margins[1] + (height_pt - h * scale) / 2)
         lines = [
             "%!PS-Adobe-3.0",
-            "%%%%BoundingBox: 0 0 %d %d" % (width_points, height_points),
+            "%%%%BoundingBox: 0 0 %d %d" % size,
             "%%Creator: asciifier",
             "%%%%CreationDate: %s" % now.isoformat(),
-            "%%%%DocumentMedia: %s %d %d 80 white ()" % (paper, paper_width_points, paper_height_points),
+            "%%%%DocumentMedia: %s %d %d 80 white ()" % (paper, paper_width_pt, paper_height_pt),
             "%%Pages: 1",
             "%%EndComments",
             "%%BeginSetup",
             "  % A4, unrotated",
-            "  << /PageSize [%d %d] /Orientation 0 >> setpagedevice" % (paper_width_points, paper_height_points),
+            "  << /PageSize [%d %d] /Orientation 0 >> setpagedevice" % (paper_width_pt, paper_height_pt),
             "%%EndSetup",
             "%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG",
             "%Copyright: All rights reserved.",
             "% Image converted to ASCII by asciifier.py (https://github.com/ola-ct/asciifier)",
             "",
             "/%s findfont" % font_name,
-            "%d scalefont" % font_points,
+            "%d scalefont" % font_pt,
             "setfont",
             "",
-            "/pc { moveto show } def",
+            "/c { moveto show } def",
             "",
-            "%d %d translate" % self.margins,
+            "%d %d translate" % offset,
             "%f %f scale" % (scale, scale)
         ]
         for y in range(0, self.im.height):
@@ -107,7 +113,7 @@ class Asciifier:
                     c = string.replace(c, '\\', "\\\\")
                     c = string.replace(c, '(', "\\(")
                     c = string.replace(c, ')', "\\)")
-                    lines.append("(%s) %d %d pc" % (c, x * grid_points, (self.im.height - y) * grid_points))
+                    lines.append("(%s) %d %d c" % (c, x * grid_pt, (self.im.height - y) * grid_pt))
 
         lines += [
             "",
