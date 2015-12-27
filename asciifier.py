@@ -9,6 +9,7 @@
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from datetime import datetime
 from math import ceil
+import numpy as np
 import string
 import argparse
 
@@ -24,7 +25,7 @@ class Asciifier:
         'a0': (841, 1189),
         'letter': (215.9, 279.4)
     }
-    TYPE_CHOICES = ['text', 'postscript']
+    TYPE_CHOICES = ['text', 'postscript', 'pdf']
     PAPER_CHOICES = PAPER_SIZES.keys()
     result = [[]]
     margins = (10, 10)
@@ -35,9 +36,8 @@ class Asciifier:
                   'T', 's', 'l', '7', 'L', '[', 'v', ']', 'i', 'c', '=', ')', '(', '+', '|', '<', '>', 'r', '?', '*',
                   '/', '!', ';', '~', '-', ':', '.', ' ']
 
-    def __init__(self, font_file):
-        if font_file is not None:
-            self.generate_luminosity_mapping(font_file)
+    def __init__(self):
+        pass
 
     @staticmethod
     def mm_to_pt(mm):
@@ -63,6 +63,110 @@ class Asciifier:
     def to_plain_text(self):
         txt = zip(*self.result)
         return "\n".join([''.join(line).rstrip() for line in txt])
+
+    def to_pdf(self, **kwargs):
+        paper = kwargs.get('paper', 'a4')
+        font_name = kwargs.get('font_name', 'Hack-Bold')
+        paper_size = self.PAPER_SIZES[string.lower(paper)]
+        paper_width_pt = Asciifier.mm_to_pt(paper_size[0])
+        paper_height_pt = Asciifier.mm_to_pt(paper_size[1])
+        size_pt = (ceil(paper_width_pt - 2 * Asciifier.mm_to_pt(self.margins[0])),
+                   ceil(paper_height_pt - 2 * Asciifier.mm_to_pt(self.margins[1])))
+        width_pt = size_pt[0]
+        height_pt = size_pt[1]
+        grid_pt = 12
+        font_pt = 12
+        size = self.im.width * grid_pt, self.im.height * grid_pt
+        w, h = size
+        scale = width_pt / w
+        offset = (self.margins[0] + (width_pt - w * scale) / 2, self.margins[1] + (height_pt - h * scale) / 2)
+        stream_lines = [
+            "  BT",
+            "    /F1 %d Tf" % font_pt,
+            "    %d %d Td" % offset,
+            "",
+            "  ET"
+        ]
+        stream = "\n".join(stream_lines)
+        blocks = [
+            [
+                "%PDF-1.4",
+                "%¥±ë",
+                ""
+            ],
+            [
+                "1 0 obj",
+                "  << /Type /Catalog",
+                "     /Pages 3 0 R",
+                "  >>",
+                "endobj",
+                "",
+            ],
+            [
+                "2 0 obj",
+                "  << /Type /Pages",
+                "     /Kids [3 0 R]",
+                "     /Count 1",
+                "     /MediaBox [0 0 %d %d]" % (paper_width_pt, paper_height_pt),
+                "  >>",
+                "endobj",
+                ""
+            ],
+            [
+                "3 0 obj",
+                "  << /Type /Page",
+                "     /Parent 2 0 R",
+                "     /Contents 3 0 R",
+                "     /Resources",
+                "     << /Font",
+                "        << /F1",
+                "           << /Type /Font",
+                "              /Subtype /Type1",
+                "              /Basefont %s" % font_name,
+                "           >>",
+                "        >>",
+                "     >>",
+                "     /Contents 4 0 R",
+                "  >>",
+                "endobj",
+                ""
+            ],
+            [
+                "4 0 obj",
+                "  << /Length {} >>".format(len(stream)),
+                "stream",
+                stream,
+                "endstream",
+                "endobj",
+                ""
+            ],
+        ]
+
+        blocklengths = map(lambda b: len(b), map(lambda block: "\n".join(block), blocks))
+        print blocklengths
+        blockoffsets = list(np.cumsum(blocklengths))
+        print blockoffsets
+        xref = [
+            "xref",
+            "0 5",
+            "{0:010d} 65535 f".format(0),
+            "{0:010d} 00000 n".format(blockoffsets[1]),
+            "{0:010d} 00000 n".format(blockoffsets[2]),
+            "{0:010d} 00000 n".format(blockoffsets[3]),
+            "{0:010d} 00000 n".format(blockoffsets[4]),
+            "trailer",
+            "  <<  /Root 1 0 R",
+            "      /Size 5",
+            "  >>",
+            "startxref",
+            "565",
+            "%%EOF"
+        ]
+
+        blocks.append(xref)
+        blocks = map(lambda l: "\n".join(l), blocks)
+
+        return "\n".join(blocks)
 
     def to_postscript(self, **kwargs):
         paper = kwargs.get('paper', 'a4')
@@ -148,15 +252,19 @@ def main():
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
     args = parser.parse_args()
 
-    font_path = args.font
-        
-    asciifier = Asciifier(font_path)
+    asciifier = Asciifier()
 
     output_type = 'text'
-    if args.out is not None and args.out.endswith('.ps'):
+    if args.out is not None:
+        if args.out.endswith('.ps'):
             output_type = 'postscript'
-    if args.type == 'postscript':
-        output_type = 'postscript'
+        elif args.out.endswith('.pdf'):
+            output_type = 'pdf'
+    if args.type is not None:
+        if args.type == 'postscript':
+            output_type = 'postscript'
+        elif args.type == 'pdf':
+            output_type = 'pdf'
 
     aspect_ratio = 2.0
     if args.aspect is not None:
@@ -171,7 +279,10 @@ def main():
         result = asciifier.to_plain_text()
     elif output_type == 'postscript':
         asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_postscript(paper=args.paper, font_name=args.psfont)
+        result = asciifier.to_postscript(paper=args.paper, font_name=args.font)
+    elif output_type == 'pdf':
+        asciifier.process(args.image, resolution=resolution)
+        result = asciifier.to_pdf(paper=args.paper, font_name=args.font)
     else:
         result = ''
 
