@@ -51,10 +51,10 @@ asciifier.py
   [-h]
   --image IMAGE
   --out OUT
-  --type {text,postscript}
-  --aspect ASPECTRATIO
-  --psfont PSFONT
-  --paper {a3,a4,letter}
+  --type {text,postscript,pdf}
+  --aspect ASPECT
+  --font FONT
+  --paper {a0,a1,a2,a3,a4,letter}
   --resolution RESOLUTION
 ```
 
@@ -62,21 +62,33 @@ asciifier.py
 
 `OUT`: name of file to write ASCII art to
 
-`PSFONT`: name of Postscript to use; only valid for postscript output
+`FONT`: name of font to use; only valid for postscript or pdf output
 
 `RESOLUTION`: number of characters per line (default: 80)
 
 `PAPER`: paper dimensions (default: a4); only valid for postscript output
 
-`ASPECTRATIO`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
+`ASPECT`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
 
 
 ### Examples
 
 ![Toad](images/toad.png)
 
-Convert image to postscript, fitted to DIN A3 paper (default is A4),
-with 100 characters per line (default is 80);
+Convert image to PDF, fitted to DIN A2 paper (default is A4),
+with 120 characters per line (default is 80);
+type is implicitly determined by file extension:
+
+```
+asciifier.py --image toad.png \
+             --out toad.pdf \
+             --paper a2\
+             --resolution 120
+```
+
+
+Convert image to postscript, fitted to DIN A3 paper,
+with 100 characters per line;
 type is implicitly determined by file extension:
 
 ```
