@@ -9,9 +9,17 @@
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from datetime import datetime
 from math import ceil
-import numpy as np
 import string
 import argparse
+
+
+def cumsum(arr):
+    s = 0
+    result = []
+    for x in arr:
+        s += x
+        result.append(s)
+    return result
 
 
 class Asciifier:
@@ -144,7 +152,7 @@ class Asciifier:
 
         blocklengths = map(lambda b: len(b), map(lambda block: "\n".join(block), blocks))
         print blocklengths
-        blockoffsets = list(np.cumsum(blocklengths))
+        blockoffsets = cumsum(blocklengths)
         print blockoffsets
         xref = [
             "xref",
