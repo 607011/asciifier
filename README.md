@@ -50,13 +50,13 @@ to clone the repository into a local folder.
 ```
 asciifier.py 
   [-h]
-  --image IMAGE
   --out OUT
   --type {text,postscript,pdf}
   --aspect ASPECT
   --font FONT
   --paper {a0,a1,a2,a3,a4,letter}
   --resolution RESOLUTION
+  IMAGE
 ```
 
 `IMAGE`: filename of image to be converted
@@ -81,7 +81,7 @@ with 120 characters per line (default is 80);
 type is implicitly determined by file extension:
 
 ```
-asciifier.py --image toad.png \
+asciifier.py toad.png \
              --out toad.pdf \
              --paper a2\
              --resolution 120
@@ -93,7 +93,7 @@ with 100 characters per line;
 type is implicitly determined by file extension:
 
 ```
-asciifier.py --image toad.png \
+asciifier.py toad.png \
              --out toad.ps \
              --paper a3 \
              --resolution 100
@@ -105,7 +105,7 @@ assumed aspect ratio of terminal font is 2.1 (default is 2.0);
 type is implicitly determined by file extension:
 
 ```
-asciifier.py --image toad.png \
+asciifier.py toad.png \
              --out toad.txt \
              --aspect 2.4 \
              --resolution 69
