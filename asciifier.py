@@ -136,7 +136,7 @@ class Asciifier:
         stream = zlib.compress('\n'.join(stream_lines), 9)
         blocks = [
             [
-                '%PDF-1.4',
+                '%PDF-1.7',
                 '%%Creator: asciifier',
                 '%%CreationDate: {}'.format(datetime.today().isoformat()),
             ],
@@ -159,8 +159,8 @@ class Asciifier:
                 '4 0 obj<< /Type/Font /Subtype/Type1 /Name/F1 /BaseFont/{} >>endobj'.format(font_name),
             ],
             [
-                '5 0 obj<< /Length {} /Filter [/ASCII85Decode/FlateDecode] >>stream'.format(len(stream)),
-                base85.b85encode(stream),
+                '5 0 obj<< /Length {} /Filter [/FlateDecode] >>stream'.format(len(stream)),
+                stream,
                 'endstream',
                 'endobj',
             ],
@@ -307,7 +307,7 @@ def main():
     if args.out is None:
         print result
     else:
-        with open(args.out, 'w+') as f:
+        with open(args.out, 'wb+') as f:
             f.write(result)
 
 
