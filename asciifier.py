@@ -105,9 +105,10 @@ class Asciifier:
     def to_pdf(self, **kwargs):
         import zlib
         paper = kwargs.get('paper', 'a4')
+        font_name = 'Courier'
         if kwargs.get('font_name') is not None:
-            self.generate_luminosity_mapping(kwargs.get('font_name'))
-        font_name = kwargs.get('font_name', 'Courier')
+            font_name = kwargs.get('font_name')
+            self.generate_luminosity_mapping(font_name)
         paper_size = self.PAPER_SIZES[string.lower(paper)]
         paper_pt = Size(mm_to_pt(paper_size.width), mm_to_pt(paper_size.height))
         size_pt = Size(ceil(paper_pt.width - mm_to_pt(self.margins.left + self.margins.right)),
@@ -182,7 +183,7 @@ class Asciifier:
 
     def to_postscript(self, **kwargs):
         paper = kwargs.get('paper', 'a4')
-        font_name = kwargs.get('font_name', 'Times-Roman')
+        font_name = kwargs.get('font_name', 'Courier')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
         paper_pt = Size(mm_to_pt(paper_size.width), mm_to_pt(paper_size.height))
         size_pt = Size(ceil(paper_pt.width - mm_to_pt(self.margins.left + self.margins.right)),
