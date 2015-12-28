@@ -2,10 +2,22 @@
 
 **Convert images to ASCII art**
 
-## Prerequisites:
+## Prerequisites
 
  - Python 2.5 or later
  - Pillow 3.x
+
+
+## Download code
+
+[Download asciifier.py](https://raw.githubusercontent.com/ola-ct/asciifier/master/asciifier.py) from the
+[ASCIIfier repository](https://github.com/ola-ct/asciifier), or do
+
+```
+git clone https://github.com/ola-ct/asciifier.git
+```
+
+to clone the repository into a local folder.
 
 
 ## Installation
@@ -32,18 +44,6 @@ Then install the [Python Imaging Library](https://github.com/python-pillow/Pillo
 ```
 pip install Pillow
 ```
-
-## Download
-
-[Download asciifier.py](https://raw.githubusercontent.com/ola-ct/asciifier/master/asciifier.py) from the
-[ASCIIfier repository](https://github.com/ola-ct/asciifier), or do
-
-```
-git clone https://github.com/ola-ct/asciifier.git
-```
-
-to clone the repository into a local folder.
-
 
 ## Usage
 
