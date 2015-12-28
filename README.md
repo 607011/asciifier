@@ -4,7 +4,7 @@
 
 ## Prerequisites:
 
- - Python 2.7
+ - Python 2.5 or later
  - Pillow 3.x
 
 
@@ -25,7 +25,7 @@ D:\Python27\Scripts\pip.exe install Pillow
 
 ### Linux
 
-Install Python 2.x with your distribution specific package manager.
+Install Python 2.5 or later with your distribution specific package manager.
 
 Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow):
 
@@ -36,9 +36,11 @@ pip install Pillow
 ## Download
 
 [Download asciifier.py](https://raw.githubusercontent.com/ola-ct/asciifier/master/asciifier.py) from the
-[ASCIIfier repository](https://github.com/ola-ct/asciifier) or do
+[ASCIIfier repository](https://github.com/ola-ct/asciifier), or do
 
-`git clone https://github.com/ola-ct/asciifier.git`
+```
+git clone https://github.com/ola-ct/asciifier.git
+```
 
 to clone the repository into a local folder.
 
@@ -49,7 +51,7 @@ to clone the repository into a local folder.
 
 ```
 asciifier.py 
-  [-h]
+  [-h] [--help]
   --out OUT
   --type {text,postscript,pdf}
   --aspect ASPECT
