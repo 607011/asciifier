@@ -76,6 +76,8 @@ asciifier.py
 
 ![Toad](examples/images/toad.png)
 
+#### PDF
+
 Convert image to PDF, fitted to DIN A2 paper (default is A4),
 with 120 characters per line (default is 80);
 type is implicitly determined by file extension:
@@ -87,6 +89,7 @@ asciifier.py toad.png \
              --resolution 120
 ```
 
+#### Postscript
 
 Convert image to postscript, fitted to DIN A3 paper,
 with 100 characters per line;
@@ -99,6 +102,7 @@ asciifier.py toad.png \
              --resolution 100
 ```
 
+#### Pure ASCII text
 
 Convert image to ASCII with 69 characters per line;
 assumed aspect ratio of terminal font is 2.1 (default is 2.0);
