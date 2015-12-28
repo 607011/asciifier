@@ -76,11 +76,11 @@ class Asciifier:
     result = [[]]
     margins = Margin(10, 10, 10, 10)
     im = None
-    luminosity = ['B', '@', 'M', 'Q', 'W', 'N', 'g', 'R', 'D', '#', 'H', 'O', '&', '0', 'K', '8', 'U', 'd', 'b', '6',
-                  'p', 'q', '9', 'G', 'E', 'A', '$', 'm', 'h', 'P', 'Z', 'k', 'X', 'S', 'V', 'a', 'e', '5', '4', '3',
-                  'y', 'w', '2', 'F', 'I', 'o', 'u', 'n', 'j', 'C', 'Y', '1', 'f', 't', 'J', '{', '}', 'z', '%', 'x',
-                  'T', 's', 'l', '7', 'L', '[', 'v', ']', 'i', 'c', '=', '+', '|', '<', '>', 'r', '?', '*', '/', '!',
-                  ';', '~', '-', ':', '.', ' ']
+    luminosity = ['H', 'R', 'B', 'E', 'p', 'M', 'q', 'Q', 'N', 'W', 'g', '#', 'm', 'b', 'A', 'K', 'd', 'D', '8', '@',
+                  'P', 'G', 'F', 'U', 'h', 'X', 'e', 'T', 'Z', 'S', 'k', 'O', '$', 'y', 'a', 'L', 'f', '6', '0', 'w',
+                  '9', '&', '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I', 'z', '3', 'j', 'c',
+                  't', 'r', 'l', 'v', 'i', '}', '?', '{', '1', '=', ']', '[', '+', '7', '<', '>', '|', '!', '*', '/',
+                  ';', ':', '~', '-', '.', ' ']
 
     def __init__(self):
         pass
@@ -99,17 +99,14 @@ class Asciifier:
             for pixel in image.getdata():
                 r, g, b = pixel
                 l += 0.2126 * r + 0.7152 * g + 0.0722 * b
-            intensity.append({l: l, c: chr(c)})
+            intensity.append({'l': l, 'c': chr(c)})
         self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
 
-    def to_plain_text(self):
-        txt = zip(*self.result)
-        return '\n'.join([''.join(line).rstrip() for line in txt])
-
     def to_pdf(self, **kwargs):
-        from mom.codec import base85
         import zlib
         paper = kwargs.get('paper', 'a4')
+        if kwargs.get('font_name') is not None:
+            self.generate_luminosity_mapping(kwargs.get('font_name'))
         font_name = kwargs.get('font_name', 'Courier')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
         paper_pt = Size(mm_to_pt(paper_size.width), mm_to_pt(paper_size.height))
@@ -234,6 +231,10 @@ class Asciifier:
             'showpage'
         ]
         return '\n'.join(lines)
+
+    def to_plain_text(self):
+        txt = zip(*self.result)
+        return '\n'.join([''.join(line).rstrip() for line in txt])
 
     def process(self, image_filename, **kwargs):
         self.im = Image.open(image_filename)
