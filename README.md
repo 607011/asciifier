@@ -83,7 +83,7 @@ type is implicitly determined by file extension:
 ```
 asciifier.py toad.png \
              --out toad.pdf \
-             --paper a2\
+             --paper a2 \
              --resolution 120
 ```
 
@@ -114,32 +114,33 @@ asciifier.py toad.png \
 Result:
 
 ```
-                 ,~"/\\//!;""^^~~~---_'`
-              :!>((<<|(c[lTxxTlL]+r/^:_-~-:,.
-           ~>i[[]+c}ykmG9qq9EAmhZkXS31v/_-----_'
-        `/]TTl[i[FGUUb6p9EAmPkV2utTsYXkSl-^_:::-:,
-       !Lzz%xTT)I&K6ppppq99GGA$hZS4uoeeSh!_-__:_:-:.
-     `({tttft}zl[F98K8Ubppppq9999qq9Ees}i_~~--::::_^\`
-     x2fjY11t{zxli712aPAEEGEAmZXVwY%vr-' -~~~~~~-~:;o)
-    *ZVYjYYY1t{%%x7]c==i]c=))(|r?\;"";/!;""^^~~~-~:)St_
-    ]ZIf1ttJ{}%%Tl77L[vic=((+||||||<>r?*/!!;;""^^^:=$o*
-    =Vf}zzxTssllL[[[v]iic=))(+|||<<>>>rrr?**\/!;;""\4u<
-    \3ssl7LLLLL[vvv]]]]iiiicc=))(+||<>rrrr???**\/!/"}1~
-    `%Tvv[[[vv[[[L7sx%%TlL]c)+<r?r?r?r>>r???****\//"ic
-     '(Lvv[[[[L7s%tCjfT=>>>*/;^-_',_~^;/*r??***\/!!;~`
-       "([LLL[LlxJY1{lseS+//;^^^:%n+,::-^\?**\\\/!~'
-         -?=[lsTT{f}%[fhk=*\/!""~xl(_-:-:!r??*/;-.
-            _!<cltfJ%7i|*??*\!;~-``_----:~>/"-.
-                i{J{zs[7Jl=(>><||[+~~~~~-'.
-             `  /7[[77Ltxsll7L[=>>=/;^~^~.
-              ']J1Y1T[vic=)(+<r*?*\r?|)*',,`
-             ?tYChEhCszT7]c)|>?\^;!|Y{}x(,,,.
-          ,!]zilShVuxzxL](<?\!"~:_:_ljlTT<+^,'`
-          ?L[=?]2Zyfzx]+r*"~-_'.    .1Yx%Js+*!^'
-              ` ,ixTsLi)|r*!;^~:'.`` \s]|;.`''.
-                   c{%s[=<r*/;";!;\r|>_
-                 *lnhmZV4nJtYI5aa45eay[\'
-                [G8UqEmSVPmGKNObqGma3Sk2[_
-                IbKdd6qGaXmA&H0Ubp9GSamZY;
-                tZh$$mPZXeVh6b9AmhPkXVeyJ^
+                       ~*|7+77<>>||!!****//;~.
+                   ;<=}}{1{}lczJuuJzjr?=7!;;**/;:-
+                *=lccr?lofZhGP@@PGUheTZSkLnc<;/////;-
+             .7rJJzjlcwGAAdD8PGUheZO05CJInSZkz/!;;;///~
+            <jo22uIJi9gbD8888@PPGGFhXTkL5&$$kX<;/;;;;;//-
+          .}VCCCsCV2zcwPbbbKd8888@PPPP@@PFyIor;**///;;;;!+.
+          u0sx4nnCV2uzl3n0OeFGGGFFhTSO64ut]/~ /!*******/>9i
+         +TO4Y44nnCV2uJ3rvivrrviii}{=[7>||><>>||!!*****/}kC:
+         rT9snCC%Vo2uJz33jctrlv}??{{{{{{1=][[7<<>>||!!!/ih&[
+         iksoo2uJIIz33jcctrrllvii}?{{{111====]][+77<>>||7a51
+         +LzIz3j3jjjccctttrrlrlllvii}}?{{1==]]]][[[++7<<|on*
+          uJttcccccccjj3Iu2uIzjtli?{]]][]]]===]][[[[+77<|rv
+          ~}jcccccjj3IuCxxsIv===[7>!/;~:;*!|<+]][[++77<<|*.
+            |}cjjjjjzu%4n%zIyk?77>!!!/25?~;//!7[++++77<!~
+              /]iczIIJVsoucsXZi[+7>||*Jz}:///;<=[[[7>/-
+                 ;<{l3Cs%23l{+]]+7<>!/..:*///;*=7|/-
+                     rV%%2Ij3%zi}1=1{{c?*****/~.
+                     73cc33jCJIzz3jcv==v<>|!!*.
+                   ~t%n4sJctlvvi}?1][[+7]]{i+~:~.
+                  [C4xXFXxI2J3rli{1]+!>>{4Vou}~::-
+               ~<r2rzkXO&u2ujr}1]+<|*/;;:zxzJJ{?!:~.
+               ]3ci[t0Tfsour?=+|*/:~-    -n4J2%z?[<|~
+                   . ~luJzjri{]+<>!*;~-.. 7It{>-.~-.
+                        l%2Ici1]+7>|><>7]{=:
+                      +z5ehTOa5%C49y$$Lay$6c+~
+                     cGAA@GhkOThPbpgd@Gh$LkZ0c:
+                     9dbKKD@POSXU#WmKd8PGk$XT4>
+                     CTXUhheTS$OXDdPFheeZSOyfC!
+
 ```
