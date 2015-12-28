@@ -105,6 +105,7 @@ class Asciifier:
     def to_pdf(self, **kwargs):
         import zlib
         paper = kwargs.get('paper', 'a4')
+        compress = kwargs.get('compress', True)
         font_name = 'Courier'
         if kwargs.get('font_name') is not None:
             font_name = kwargs.get('font_name')
@@ -121,17 +122,19 @@ class Asciifier:
                        self.margins.bottom + (size_pt.height - size.height * scale) / 2)
         stream_lines = []
         for y in range(0, self.im.height):
-            yy = int(offset.x + (self.im.height - y) * grid_pt)
+            yy = offset.y + scale * (self.im.height - y) * grid_pt
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
                     tj = 'BT /F1 {} Tf {} {} Td ({}) Tj ET'\
-                        .format(font_pt,
-                                int(offset.x + x * grid_pt),
+                        .format(font_pt * scale,
+                                offset.x + x * grid_pt * scale,
                                 yy,
                                 c)
                     stream_lines.append(tj)
-        stream = zlib.compress('\n'.join(stream_lines), 9)
+        stream = '\n'.join(stream_lines)
+        if compress:
+            stream = zlib.compress(stream, 9)
         blocks = [
             [
                 '%PDF-1.7',
@@ -157,7 +160,7 @@ class Asciifier:
                 '4 0 obj<< /Type/Font /Subtype/Type1 /Name/F1 /BaseFont/{} >>endobj'.format(font_name),
             ],
             [
-                '5 0 obj<< /Length {} /Filter [/FlateDecode] >>stream'.format(len(stream)),
+                '5 0 obj<< /Length {} {}>>stream'.format(len(stream), '/Filter[/FlateDecode]' if compress else ''),
                 stream,
                 'endstream',
                 'endobj',
