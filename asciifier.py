@@ -225,7 +225,7 @@ class Asciifier:
 
 def main():
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
-    parser.add_argument('--image', type=str, help='file name of image to be converted')
+    parser.add_argument('image', type=str, help='file name of image to be converted')
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
     parser.add_argument('--type', type=str, choices=Asciifier.TYPE_CHOICES, help='output type.')
     parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font.')
@@ -256,15 +256,23 @@ def main():
     if args.resolution is not None:
         resolution = args.resolution
 
+    paper = 'a3'
+    if args.paper is not None:
+        paper = args.paper
+
+    font_name = 'Courier'
+    if args.paper is not None:
+        font_name = args.font
+
     if output_type == 'text':
         asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
         result = asciifier.to_plain_text()
     elif output_type == 'postscript':
         asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_postscript(paper=args.paper, font_name=args.font)
+        result = asciifier.to_postscript(paper=paper, font_name=font_name)
     elif output_type == 'pdf':
         asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_pdf(paper=args.paper, font_name=args.font)
+        result = asciifier.to_pdf(paper=paper, font_name=font_name)
     else:
         result = '<invalid type>'
 
