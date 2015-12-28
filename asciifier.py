@@ -26,21 +26,55 @@ def mm_to_pt(mm):
     return 2.834645669 * mm
 
 
+class Size:
+    width = None
+    height = None
+
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def to_tuple(self):
+        return self.width, self.height
+
+
+class Point:
+    x = None
+    y = None
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+class Margin:
+    top = None
+    right = None
+    bottom = None
+    left = None
+
+    def __init__(self, top, right, bottom, left):
+        self.top = top
+        self.right = right
+        self.bottom = bottom
+        self.left = left
+
+
 class Asciifier:
     PAPER_SIZES = {
-        'a6': (105, 148),
-        'a5': (148, 210),
-        'a4': (210, 297),
-        'a3': (297, 420),
-        'a2': (420, 594),
-        'a1': (594, 841),
-        'a0': (841, 1189),
-        'letter': (215.9, 279.4)
+        'a6': Size(105, 148),
+        'a5': Size(148, 210),
+        'a4': Size(210, 297),
+        'a3': Size(297, 420),
+        'a2': Size(420, 594),
+        'a1': Size(594, 841),
+        'a0': Size(841, 1189),
+        'letter': Size(215.9, 279.4)
     }
     TYPE_CHOICES = ['text', 'postscript', 'pdf']
     PAPER_CHOICES = PAPER_SIZES.keys()
     result = [[]]
-    margins = (10, 10)
+    margins = Margin(10, 10, 10, 10)
     im = None
     luminosity = ['B', '@', 'M', 'Q', 'W', 'N', 'g', 'R', 'D', '#', 'H', 'O', '&', '0', 'K', '8', 'U', 'd', 'b', '6',
                   'p', 'q', '9', 'G', 'E', 'A', '$', 'm', 'h', 'P', 'Z', 'k', 'X', 'S', 'V', 'a', 'e', '5', '4', '3',
@@ -53,12 +87,12 @@ class Asciifier:
 
     def generate_luminosity_mapping(self, font_file):
         n = 64
-        image_size = (n, n)
+        image_size = Size(n, n)
         font = ImageFont.truetype(font_file, int(3 * n / 4))
         self.luminosity = []
         intensity = []
         for c in range(32, 127):
-            image = Image.new('RGB', image_size, ImageColor.getrgb('#ffffff'))
+            image = Image.new('RGB', image_size.to_tuple(), ImageColor.getrgb('#ffffff'))
             draw = ImageDraw.Draw(image)
             draw.text((0, 0), chr(c), font=font, fill=(0, 0, 0))
             l = 0
@@ -78,30 +112,27 @@ class Asciifier:
         paper = kwargs.get('paper', 'a4')
         font_name = kwargs.get('font_name', 'Courier')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_width_pt = mm_to_pt(paper_size[0])
-        paper_height_pt = mm_to_pt(paper_size[1])
-        size_pt = (ceil(paper_width_pt - 2 * mm_to_pt(self.margins[0])),
-                   ceil(paper_height_pt - 2 * mm_to_pt(self.margins[1])))
-        width_pt = size_pt[0]
-        height_pt = size_pt[1]
+        paper_pt = Size(mm_to_pt(paper_size.width), mm_to_pt(paper_size.height))
+        size_pt = Size(ceil(paper_pt.width - mm_to_pt(self.margins.left + self.margins.right)),
+                       ceil(paper_pt.height - mm_to_pt(self.margins.top + self.margins.bottom)))
         grid_pt = 12
         font_pt = 12
-        size = self.im.width * grid_pt, self.im.height * grid_pt
-        w, h = size
-        scale = width_pt / w
-        xoff = self.margins[0] + (width_pt - w * scale) / 2
-        yoff = self.margins[1] + (height_pt - h * scale) / 2
+        size = Size(self.im.width * grid_pt, self.im.height * grid_pt)
+        scale = size_pt.width / size.width
+        offset = Point(self.margins.left + (size_pt.width - size.width * scale) / 2,
+                       self.margins.bottom + (size_pt.height - size.height * scale) / 2)
         stream_lines = []
         for y in range(0, self.im.height):
-            yy = int(yoff + (self.im.height - y) * grid_pt)
+            yy = int(offset.x + (self.im.height - y) * grid_pt)
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
-                    stream_lines.append('BT /F1 {} Tf {} {} Td ({}) Tj ET'
-                                        .format(font_pt,
-                                                int(xoff + x * grid_pt),
-                                                yy,
-                                                c))
+                    tj = 'BT /F1 {} Tf {} {} Td ({}) Tj ET'\
+                        .format(font_pt,
+                                int(offset.x + x * grid_pt),
+                                yy,
+                                c)
+                    stream_lines.append(tj)
         stream = zlib.compress('\n'.join(stream_lines), 9)
         blocks = [
             [
@@ -117,7 +148,7 @@ class Asciifier:
             ],
             [
                 '3 0 obj<< /Type/Page',
-                '     /MediaBox [0 0 {} {}]'.format(int(paper_width_pt), int(paper_height_pt)),
+                '     /MediaBox [0 0 {} {}]'.format(int(paper_pt.width), int(paper_pt.height)),
                 '     /Parent 2 0 R',
                 '     /Resources << /Font << /F1 4 0 R >> >>',
                 '     /Contents 5 0 R',
@@ -135,18 +166,18 @@ class Asciifier:
             ],
         ]
         blockoffsets = cumsum(map(lambda b: len(b), map(lambda block: '\n'.join(block), blocks)))
+        blockcount = len(blockoffsets)
         xref = [
             'xref',
-            '0 6',
-            '{0:010d} 65535 f'.format(0),
-            '{0:010d} 00000 n'.format(blockoffsets[0]),
-            '{0:010d} 00000 n'.format(blockoffsets[1]),
-            '{0:010d} 00000 n'.format(blockoffsets[2]),
-            '{0:010d} 00000 n'.format(blockoffsets[3]),
-            '{0:010d} 00000 n'.format(blockoffsets[4]),
+            '0 {}'.format(blockcount),
+            '{0:010d} 65535 f'.format(0)
+        ]
+        for i in range(0, blockcount):
+            xref += ['{0:010d} 00000 n'.format(blockoffsets[i])]
+        xref += [
             'trailer<< /Root 1 0 R /Size 6 >>',
             'startxref',
-            '{}'.format(blockoffsets[5]),
+            '{}'.format(blockoffsets[blockcount-1]),
             '%%EOF'
         ]
         blocks.append(xref)
@@ -156,30 +187,27 @@ class Asciifier:
         paper = kwargs.get('paper', 'a4')
         font_name = kwargs.get('font_name', 'Times-Roman')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_width_pt = mm_to_pt(paper_size[0])
-        paper_height_pt = mm_to_pt(paper_size[1])
-        size_pt = (ceil(paper_width_pt - 2 * mm_to_pt(self.margins[0])),
-                   ceil(paper_height_pt - 2 * mm_to_pt(self.margins[1])))
-        width_pt = size_pt[0]
-        height_pt = size_pt[1]
+        paper_pt = Size(mm_to_pt(paper_size.width), mm_to_pt(paper_size.height))
+        size_pt = Size(ceil(paper_pt.width - mm_to_pt(self.margins.left + self.margins.right)),
+                       ceil(paper_pt.height - mm_to_pt(self.margins.top + self.margins.bottom)))
         grid_pt = 12
         font_pt = 12
-        size = self.im.width * grid_pt, self.im.height * grid_pt
-        w, h = size
-        scale = width_pt / w
+        size = Size(self.im.width * grid_pt, self.im.height * grid_pt)
+        scale = size_pt.width / size.width
         now = datetime.today()
-        offset = (self.margins[0] + (width_pt - w * scale) / 2, self.margins[1] + (height_pt - h * scale) / 2)
+        offset = Point(self.margins.left + (size_pt.width - size.width * scale) / 2,
+                       self.margins.top + (size_pt.height - size.height * scale) / 2)
         lines = [
             '%!PS-Adobe-3.0',
-            '%%BoundingBox: 0 0 {} {}'.format(size[0], size[1]),
+            '%%BoundingBox: 0 0 {} {}'.format(size.width, size.height),
             '%%Creator: asciifier',
             '%%CreationDate: {}'.format(now.isoformat()),
-            '%%DocumentMedia: {} {} {} 80 white ()'.format(paper, paper_width_pt, paper_height_pt),
+            '%%DocumentMedia: {} {} {} 80 white ()'.format(paper, paper_pt.width, paper_pt.height),
             '%%Pages: 1',
             '%%EndComments',
             '%%BeginSetup',
             '  % A4, unrotated',
-            '  << /PageSize [{} {}] /Orientation 0 >> setpagedevice'.format(paper_width_pt, paper_height_pt),
+            '  << /PageSize [{} {}] /Orientation 0 >> setpagedevice'.format(paper_pt.width, paper_pt.height),
             '%%EndSetup',
             '%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG',
             '%Copyright: All rights reserved.',
@@ -191,7 +219,7 @@ class Asciifier:
             '',
             '/c { moveto show } def',
             '',
-            '{} {} translate'.format(offset[0], offset[1]),
+            '{} {} translate'.format(offset.x, offset.y),
             '{} {} scale'.format(scale, scale)
         ]
         for y in range(0, self.im.height):
