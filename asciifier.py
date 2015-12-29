@@ -88,7 +88,10 @@ class Asciifier:
     def generate_luminosity_mapping(self, font_file):
         n = 64
         image_size = Size(n, n)
-        font = ImageFont.truetype(font_file, int(3 * n / 4))
+        try:
+            font = ImageFont.truetype(font_file, int(3 * n / 4))
+        except IOError:
+            return
         self.luminosity = []
         intensity = []
         for c in range(32, 127):
