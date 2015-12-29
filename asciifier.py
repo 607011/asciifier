@@ -27,8 +27,7 @@ def mm_to_pt(mm):
 
 
 class Size:
-    width = None
-    height = None
+    """ Class to store the size of a rectangle."""
 
     def __init__(self, width, height):
         self.width = width
@@ -39,8 +38,7 @@ class Size:
 
 
 class Point:
-    x = None
-    y = None
+    """ Class to store a point on a 2D plane."""
 
     def __init__(self, x, y):
         self.x = x
@@ -48,10 +46,7 @@ class Point:
 
 
 class Margin:
-    top = None
-    right = None
-    bottom = None
-    left = None
+    """ Class to store the margins of a rectangular boundary."""
 
     def __init__(self, top, right, bottom, left):
         self.top = top
@@ -61,6 +56,8 @@ class Margin:
 
 
 class Asciifier:
+    """ Class to convert a pixel image to ASCII art."""
+
     PAPER_SIZES = {
         'a6': Size(105, 148),
         'a5': Size(148, 210),
@@ -73,17 +70,18 @@ class Asciifier:
     }
     TYPE_CHOICES = ['text', 'postscript', 'pdf']
     PAPER_CHOICES = PAPER_SIZES.keys()
-    result = [[]]
-    margins = Margin(10, 10, 10, 10)
-    im = None
-    luminosity = ['H', 'R', 'B', 'E', 'p', 'M', 'q', 'Q', 'N', 'W', 'g', '#', 'm', 'b', 'A', 'K', 'd', 'D', '8', '@',
-                  'P', 'G', 'F', 'U', 'h', 'X', 'e', 'T', 'Z', 'S', 'k', 'O', '$', 'y', 'a', 'L', 'f', '6', '0', 'w',
-                  '9', '&', '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I', 'z', '3', 'j', 'c',
-                  't', 'r', 'l', 'v', 'i', '}', '?', '{', '1', '=', ']', '[', '+', '7', '<', '>', '|', '!', '*', '/',
-                  ';', ':', '~', '-', '.', ' ']
 
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        self.margins = kwargs.get('margin', Margin(10, 10, 10, 10))
+        self.result = None
+        self.im = None
+        self.luminosity = ['H', 'R', 'B', 'E', 'p', 'M', 'q', 'Q', 'N', 'W', 'g', '#', 'm', 'b',
+                           'A', 'K', 'd', 'D', '8', '@', 'P', 'G', 'F', 'U', 'h', 'X', 'e', 'T',
+                           'Z', 'S', 'k', 'O', '$', 'y', 'a', 'L', 'f', '6', '0', 'w', '9', '&',
+                           '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I',
+                           'z', '3', 'j', 'c', 't', 'r', 'l', 'v', 'i', '}', '?', '{', '1', '=',
+                           ']', '[', '+', '7', '<', '>', '|', '!', '*', '/', ';', ':', '~', '-',
+                           '.', ' ']
 
     def generate_luminosity_mapping(self, font_file):
         n = 64
