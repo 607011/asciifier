@@ -139,7 +139,7 @@ class Asciifier:
                 '%{0:c}{1:c}{2:c}'.format(254, 245, 244),
             ],
             [
-                '1 0 obj<< /Type/Catalog/Pages 3 0 R >>endobj',
+                '1 0 obj<< /Type/Catalog/Pages 2 0 R >>endobj',
             ],
             [
                 '2 0 obj<< /Type/Pages/Count 1 /Kids [3 0 R] >>endobj',
