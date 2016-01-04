@@ -22,7 +22,7 @@ def cumsum(arr):
     return result
 
 
-def mm_to_pt(mm):
+def mm2pt(mm):
     return 2.834645669 * mm
 
 
@@ -85,11 +85,11 @@ class Asciifier:
 
     def generate_luminosity_mapping(self, font_file):
         n = 64
-        image_size = Size(n, n)
         try:
-            font = ImageFont.truetype(font_file, int(3 * n / 4))
+            font = ImageFont.truetype(font_file, int(round(0.8 * n)))
         except IOError:
             return
+        image_size = Size(n, n)
         self.luminosity = []
         intensity = []
         for c in range(32, 127):
@@ -112,9 +112,9 @@ class Asciifier:
             font_name = kwargs.get('font_name')
             self.generate_luminosity_mapping(font_name)
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_pt = Size(mm_to_pt(paper_size.width), mm_to_pt(paper_size.height))
-        size_pt = Size(ceil(paper_pt.width - mm_to_pt(self.margins.left + self.margins.right)),
-                       ceil(paper_pt.height - mm_to_pt(self.margins.top + self.margins.bottom)))
+        paper_pt = Size(mm2pt(paper_size.width), mm2pt(paper_size.height))
+        size_pt = Size(ceil(paper_pt.width - mm2pt(self.margins.left + self.margins.right)),
+                       ceil(paper_pt.height - mm2pt(self.margins.top + self.margins.bottom)))
         grid_pt = 12
         font_pt = 12
         size = Size(self.im.width * grid_pt, self.im.height * grid_pt)
@@ -189,9 +189,9 @@ class Asciifier:
         paper = kwargs.get('paper', 'a4')
         font_name = kwargs.get('font_name', 'Courier')
         paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_pt = Size(mm_to_pt(paper_size.width), mm_to_pt(paper_size.height))
-        size_pt = Size(ceil(paper_pt.width - mm_to_pt(self.margins.left + self.margins.right)),
-                       ceil(paper_pt.height - mm_to_pt(self.margins.top + self.margins.bottom)))
+        paper_pt = Size(mm2pt(paper_size.width), mm2pt(paper_size.height))
+        size_pt = Size(ceil(paper_pt.width - mm2pt(self.margins.left + self.margins.right)),
+                       ceil(paper_pt.height - mm2pt(self.margins.top + self.margins.bottom)))
         grid_pt = 12
         font_pt = 12
         size = Size(self.im.width * grid_pt, self.im.height * grid_pt)
@@ -276,11 +276,8 @@ def main():
             output_type = 'postscript'
         elif args.out.endswith('.pdf'):
             output_type = 'pdf'
-    if args.type is not None:
-        if args.type == 'postscript':
-            output_type = 'postscript'
-        elif args.type == 'pdf':
-            output_type = 'pdf'
+    if args.type in ['postscript', 'pdf']:
+        output_type = args.type
 
     aspect_ratio = 2.0
     if args.aspect is not None:
@@ -311,7 +308,7 @@ def main():
         result = '<invalid type>'
 
     if args.out is None:
-        print result
+        print(result)
     else:
         with open(args.out, 'wb+') as f:
             f.write(result)
