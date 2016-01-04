@@ -105,31 +105,28 @@ class Asciifier:
 
     def to_pdf(self, **kwargs):
         import zlib
-        paper = kwargs.get('paper', 'a4')
+        paper_type = kwargs.get('paper', 'a4')
         compress = kwargs.get('compress', True)
         font_name = 'Courier'
         if kwargs.get('font_name') is not None:
             font_name = kwargs.get('font_name')
             self.generate_luminosity_mapping(font_name)
-        paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_pt = Size(mm2pt(paper_size.width), mm2pt(paper_size.height))
-        size_pt = Size(ceil(paper_pt.width - mm2pt(self.margins.left + self.margins.right)),
-                       ceil(paper_pt.height - mm2pt(self.margins.top + self.margins.bottom)))
-        grid_pt = 12
-        font_pt = 12
-        size = Size(self.im.width * grid_pt, self.im.height * grid_pt)
-        scale = size_pt.width / size.width
-        offset = Point(self.margins.left + (size_pt.width - size.width * scale) / 2,
-                       self.margins.bottom + (size_pt.height - size.height * scale) / 2)
+        paper = self.PAPER_SIZES[string.lower(paper_type)]
+        inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
+                     ceil(paper.height - self.margins.top - self.margins.bottom))
+        size = Size(self.im.width, self.im.height)
+        scale = inner.width / size.width
+        offset = Point(self.margins.left + (inner.width - size.width * scale) / 2,
+                       self.margins.bottom + (inner.height - size.height * scale) / 2)
         stream_lines = []
         for y in range(0, self.im.height):
-            yy = offset.y + scale * (self.im.height - y) * grid_pt
+            yy = offset.y + scale * (self.im.height - y)
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
                     tj = 'BT /F1 {} Tf {} {} Td ({}) Tj ET'\
-                        .format(font_pt * scale,
-                                offset.x + x * grid_pt * scale,
+                        .format(scale,
+                                offset.x + x * scale,
                                 yy,
                                 c)
                     stream_lines.append(tj)
@@ -139,8 +136,7 @@ class Asciifier:
         blocks = [
             [
                 '%PDF-1.7',
-                '%%Creator: asciifier',
-                '%%CreationDate: {}'.format(datetime.today().isoformat()),
+                '%{0:c}{1:c}{2:c}'.format(254, 245, 244),
             ],
             [
                 '1 0 obj<< /Type/Catalog/Pages 3 0 R >>endobj',
@@ -150,7 +146,8 @@ class Asciifier:
             ],
             [
                 '3 0 obj<< /Type/Page',
-                '     /MediaBox [0 0 {} {}]'.format(int(paper_pt.width), int(paper_pt.height)),
+                '     /UserUnit 2.834645669',
+                '     /MediaBox [0 0 {} {}]'.format(paper.width, paper.height),
                 '     /Parent 2 0 R',
                 '     /Resources << /Font << /F1 4 0 R >> >>',
                 '     /Contents 5 0 R',
@@ -166,6 +163,15 @@ class Asciifier:
                 'endstream',
                 'endobj',
             ],
+            [
+                '6 0 obj<<'
+                '  /Producer(ASCIIfier)',
+                '  /Creator(ASCIIfier)',
+                '  /Subject(retro computing)',
+                '  /Keywords(ASCII art fun)',
+                '  /CreationDate(D:{})'.format(datetime.today().strftime('%Y%m%d%H%M%S')),
+                '>>endobj'
+            ]
         ]
         blockoffsets = cumsum(map(lambda b: len(b), map(lambda block: '\n'.join(block), blocks)))
         blockcount = len(blockoffsets)
@@ -177,7 +183,11 @@ class Asciifier:
         for i in range(0, blockcount):
             xref += ['{0:010d} 00000 n'.format(blockoffsets[i])]
         xref += [
-            'trailer<< /Root 1 0 R /Size 6 >>',
+            'trailer<<',
+            '  /Root 1 0 R',
+            '  /Info 6 0 R',
+            '  /Size {}'.format(len(blocks)+1),
+            '>>',
             'startxref',
             '{}'.format(blockoffsets[blockcount-1]),
             '%%EOF'
