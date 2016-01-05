@@ -9,6 +9,7 @@
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from datetime import datetime
 from math import ceil
+from ttfquery import describe, glyphquery, glyph
 import string
 import argparse
 
@@ -146,7 +147,8 @@ class Asciifier:
                 '2 0 obj<< /Type/Pages/Count 1 /Kids [3 0 R] >>endobj',
             ],
             [
-                '3 0 obj<< /Type/Page',
+                '3 0 obj',
+                '  << /Type/Page',
                 '     /MediaBox [0 0 {} {}]'.format(int(paper_pt.width), int(paper_pt.height)),
                 '     /Parent 2 0 R',
                 '     /Resources << /Font << /F1 4 0 R >> >>',
@@ -155,13 +157,31 @@ class Asciifier:
                 'endobj',
             ],
             [
-                '4 0 obj<< /Type/Font /Subtype/Type1 /Name/F1 /BaseFont/{} >>endobj'.format(font_name),
+                '4 0 obj',
+                '  << /Type/Font /Subtype/TrueType /Name/F1',
+                '     /BaseFont/{}'.format(font_name),
+                '     /FirstChar 0 /LastChar 255',
+                '     /Widths 6 0 R',
+                '     /FontDescriptor 7 0 R',
+                '     /Encoding/MacRomanEncoding'
+                '  >>',
+                'endobj',
             ],
             [
                 '5 0 obj<< /Length {} {}>>stream'.format(len(stream), '/Filter[/FlateDecode]' if compress else ''),
                 stream,
                 'endstream',
                 'endobj',
+            ],
+            [
+                '6 0 obj',
+                '  <<',
+                '  >>'
+            ],
+            [
+                '7 0 obj',
+                '  <<',
+                '  >>'
             ],
         ]
         blockoffsets = cumsum(map(lambda b: len(b), map(lambda block: '\n'.join(block), blocks)))
@@ -255,6 +275,13 @@ class Asciifier:
 
 
 def main():
+    f = describe.openFont('fonts/Hack-Bold.ttf')
+    n = glyphquery.glyphName(f, 'g')
+    g = glyph.Glyph(n)
+    c = g.calculateContours(f)
+    o = glyph.decomposeOutline(c[1])
+    print o
+
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
     parser.add_argument('image', type=str, help='file name of image to be converted')
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
