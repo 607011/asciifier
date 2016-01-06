@@ -83,6 +83,7 @@ class Asciifier:
                    '9', '&', '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I', 'z', '3', 'j', 'c',
                    't', 'r', 'l', 'v', 'i', '}', '?', '{', '1', '=', ']', '[', '+', '7', '<', '>', '|', '!', '*', '/',
                    ';', ':', '~', '-', '.', ' ']
+    COLOR_CHARS = ['A', 'C', 'G', 'T']
 
     def __init__(self, **kwargs):
         self.margins = kwargs.get('margin', Margin(10, 10, 10, 10))
@@ -100,16 +101,18 @@ class Asciifier:
             image = Image.new('RGB', image_size.to_tuple(), ImageColor.getrgb('#ffffff'))
             draw = ImageDraw.Draw(image)
             draw.text((0, 0), c, font=font, fill=(0, 0, 0))
-            l = np.sum(np.array(image.getdata(), np.long) * [2126, 7152, 722])
+            l = np.sum(np.array(image, np.long) * [2126, 7152, 722])
             intensity.append(Luminosity(l, c))
         self.luminosity = map(lambda i: i.c, sorted(intensity, key=lambda lum: lum.l))
 
     def to_pdf(self, **kwargs):
         from fpdf import FPDF
+        import random
         paper_format = kwargs.get('paper_format', 'a4')
         font_scale = kwargs.get('font_scale', 1)
         font_name = kwargs.get('font_name')
-        if font_name is not None:
+        colorize = kwargs.get('colorize', False)
+        if font_name is not None and not colorize:
             self.generate_luminosity_mapping(font_name)
         paper = self.PAPER_SIZES[string.lower(paper_format)]
         inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
@@ -135,7 +138,12 @@ class Asciifier:
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
-                    pdf.text(offset.x + x * scale, yy, c)
+                    if colorize is True:
+                        r, g, b = self.im.getpixel((x, y))
+                        pdf.set_text_color(r, g, b)
+                        pdf.text(offset.x + x * scale, yy, random.choice(Asciifier.COLOR_CHARS))
+                    else:
+                        pdf.text(offset.x + x * scale, yy, c)
         return pdf.output(dest='S')
 
     def to_plain_text(self):
@@ -169,6 +177,7 @@ def main():
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
     parser.add_argument('--fontscale', type=float, help='factor to scale font by.')
+    parser.add_argument('--colorize', nargs='?', const=True, help='generate colored output instead of b/w.')
     parser.add_argument('-v', type=int, help='verbosity level.')
     args = parser.parse_args()
 
@@ -181,6 +190,8 @@ def main():
 
     if args.v is not None:
         verbosity = args.v
+
+    colorize = args.colorize
 
     font_scale = 1.0
     if args.fontscale is not None:
@@ -213,7 +224,7 @@ def main():
         result = asciifier.to_plain_text()
     elif output_type == 'pdf':
         asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_pdf(paper_format=paper_format, font_name=font_name, font_scale=font_scale)
+        result = asciifier.to_pdf(paper_format=paper_format, font_name=font_name, font_scale=font_scale, colorize=colorize)
     else:
         result = '<invalid type>'
 
