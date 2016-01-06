@@ -65,7 +65,6 @@ class Asciifier:
         'letter': Size(215.9, 279.4),
         'legal': Size(215.9, 355.6)
     }
-    TYPE_CHOICES = ['text', 'postscript', 'pdf']
     PAPER_CHOICES = PAPER_SIZES.keys()
 
     def __init__(self, **kwargs):
@@ -132,58 +131,6 @@ class Asciifier:
                     pdf.text(offset.x + x * scale, yy, c)
         return pdf.output(dest='S')
 
-    def to_postscript(self, **kwargs):
-        paper = kwargs.get('paper', 'a4')
-        font_name = kwargs.get('font_name', 'Courier')
-        paper_size = self.PAPER_SIZES[string.lower(paper)]
-        paper_pt = Size(mm2pt(paper_size.width), mm2pt(paper_size.height))
-        size_pt = Size(ceil(paper_pt.width - mm2pt(self.margins.left + self.margins.right)),
-                       ceil(paper_pt.height - mm2pt(self.margins.top + self.margins.bottom)))
-        grid_pt = 12
-        font_pt = 12
-        size = Size(self.im.width * grid_pt, self.im.height * grid_pt)
-        scale = size_pt.width / size.width
-        now = datetime.today()
-        offset = Point(self.margins.left + (size_pt.width - size.width * scale) / 2,
-                       self.margins.top + (size_pt.height - size.height * scale) / 2)
-        lines = [
-            '%!PS-Adobe-3.0',
-            '%%BoundingBox: 0 0 {} {}'.format(size.width, size.height),
-            '%%Creator: asciifier',
-            '%%CreationDate: {}'.format(now.isoformat()),
-            '%%DocumentMedia: {} {} {} 80 white ()'.format(paper, paper_pt.width, paper_pt.height),
-            '%%Pages: 1',
-            '%%EndComments',
-            '%%BeginSetup',
-            '  % A4, unrotated',
-            '  << /PageSize [{} {}] /Orientation 0 >> setpagedevice'.format(paper_pt.width, paper_pt.height),
-            '%%EndSetup',
-            '%Copyright: Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG',
-            '%Copyright: All rights reserved.',
-            '% Image converted to ASCII by asciifier.py (https://github.com/ola-ct/asciifier)',
-            '',
-            '/{} findfont'.format(font_name),
-            '{} scalefont'.format(font_pt),
-            'setfont',
-            '',
-            '/c { moveto show } def',
-            '',
-            '{} {} translate'.format(offset.x, offset.y),
-            '{} {} scale'.format(scale, scale)
-        ]
-        for y in range(0, self.im.height):
-            yoff = (self.im.height - y) * grid_pt
-            for x in range(0, self.im.width):
-                c = self.result[x][y]
-                if c != ' ':
-                    lines.append('({}) {} {} c'.format(c, x * grid_pt, yoff))
-
-        lines += [
-            '',
-            'showpage'
-        ]
-        return '\n'.join(lines)
-
     def to_plain_text(self):
         txt = zip(*self.result)
         return '\n'.join([''.join(line).rstrip() for line in txt])
@@ -208,7 +155,6 @@ def main():
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
     parser.add_argument('image', type=str, help='file name of image to be converted')
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
-    parser.add_argument('--type', type=str, choices=Asciifier.TYPE_CHOICES, help='output type.')
     parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font.')
     parser.add_argument('--font', type=str, help='file name of font to be used.')
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
@@ -220,12 +166,8 @@ def main():
 
     output_type = 'text'
     if args.out is not None:
-        if args.out.endswith('.ps'):
-            output_type = 'postscript'
-        elif args.out.endswith('.pdf'):
+        if args.out.endswith('.pdf'):
             output_type = 'pdf'
-    if args.type in ['postscript', 'pdf']:
-        output_type = args.type
 
     font_scale = 1.0
     if args.fontscale is not None:
@@ -250,9 +192,6 @@ def main():
     if output_type == 'text':
         asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
         result = asciifier.to_plain_text()
-    elif output_type == 'postscript':
-        asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_postscript(paper_format=paper_format, font_name=font_name)
     elif output_type == 'pdf':
         asciifier.process(args.image, resolution=resolution)
         result = asciifier.to_pdf(paper_format=paper_format, font_name=font_name, font_scale=font_scale)
