@@ -40,19 +40,17 @@ You also need [NumPy](http://www.numpy.org/) but you can't install it via `pip`.
 
 ### Linux
 
-Install Python 2.5 or later with your distribution specific package manager.
-
-You also need the dev packages for the jpeg and zlib libs. 
+Install Python 2.5 or later and the development packages for jpeg, zlib and freetype with your distribution specific package manager.
 
 #### CentOS 7
 
 Install required packages:
 
 ```
-sudo yum install python-devel python-setuptools libjepg-devel zlib-devel freetype-devel
+sudo yum install python2 python2-devel python-setuptools libjepg-devel zlib-devel freetype-devel
 ```
 
-Then get the needed Python modules:
+Then install the needed Python modules:
 
 ```
 sudo pip install -r requirements.txt
