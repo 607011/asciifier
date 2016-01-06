@@ -14,6 +14,9 @@ import string
 import argparse
 
 
+verbosity = 0
+
+
 def cumsum(arr):
     s = 0
     result = []
@@ -56,6 +59,14 @@ class Margin:
         self.left = left
 
 
+class Luminosity:
+
+    def __init__(self, l, c):
+        self.l = l
+        self.c = c
+
+
+
 class Asciifier:
     """ Class to convert a pixel image to ASCII art."""
 
@@ -90,8 +101,8 @@ class Asciifier:
             draw = ImageDraw.Draw(image)
             draw.text((0, 0), c, font=font, fill=(0, 0, 0))
             l = np.sum(np.array(image.getdata(), np.long) * [2126, 7152, 722])
-            intensity.append({'l': l, 'c': c})
-        self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
+            intensity.append(Luminosity(l, c))
+        self.luminosity = map(lambda i: i.c, sorted(intensity, key=lambda lum: lum.l))
 
     def to_pdf(self, **kwargs):
         from fpdf import FPDF
@@ -103,10 +114,10 @@ class Asciifier:
         paper = self.PAPER_SIZES[string.lower(paper_format)]
         inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
                      ceil(paper.height - self.margins.top - self.margins.bottom))
-        size = Size(self.im.width, self.im.height)
-        scale = inner.width / size.width
-        offset = Point(self.margins.left + (inner.width - size.width * scale) / 2,
-                       self.margins.bottom + (inner.height - size.height * scale) / 2)
+        total = Size(self.im.width, self.im.height)
+        scale = inner.width / total.width
+        offset = Point(self.margins.left + (inner.width - total.width * scale) / 2,
+                       self.margins.bottom + (inner.height - total.height * scale) / 2)
         pdf = FPDF(unit='mm', format=paper_format.upper())
         pdf.set_compression(True)
         pdf.set_title('ASCII Art')
@@ -148,6 +159,8 @@ class Asciifier:
 
 
 def main():
+    global verbosity
+
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
     parser.add_argument('image', type=str, help='file name of image to be converted')
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
@@ -156,6 +169,7 @@ def main():
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
     parser.add_argument('--fontscale', type=float, help='factor to scale font by.')
+    parser.add_argument('-v', type=int, help='verbosity level.')
     args = parser.parse_args()
 
     asciifier = Asciifier()
@@ -164,6 +178,9 @@ def main():
     if args.out is not None:
         if args.out.endswith('.pdf'):
             output_type = 'pdf'
+
+    if args.v is not None:
+        verbosity = args.v
 
     font_scale = 1.0
     if args.fontscale is not None:
