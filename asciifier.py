@@ -80,6 +80,7 @@ class Asciifier:
         self.luminosity = Asciifier.VALID_CHARS
 
     def generate_luminosity_mapping(self, font_file):
+        import numpy as np
         n = 64
         font = ImageFont.truetype(font_file, int(round(0.8 * n)))
         image_size = Size(n, n)
@@ -88,10 +89,7 @@ class Asciifier:
             image = Image.new('RGB', image_size.to_tuple(), ImageColor.getrgb('#ffffff'))
             draw = ImageDraw.Draw(image)
             draw.text((0, 0), c, font=font, fill=(0, 0, 0))
-            l = 0
-            for pixel in image.getdata():
-                r, g, b = pixel
-                l += 0.2126 * r + 0.7152 * g + 0.0722 * b
+            l = np.sum(np.array(image.getdata(), np.long) * [2126, 7152, 722])
             intensity.append({'l': l, 'c': c})
         self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
 
