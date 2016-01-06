@@ -66,46 +66,40 @@ class Asciifier:
         'legal': Size(215.9, 355.6)
     }
     PAPER_CHOICES = PAPER_SIZES.keys()
+    VALID_CHARS = ['H', 'R', 'B', 'E', 'p', 'M', 'q', 'Q', 'N', 'W', 'g', '#', 'm', 'b', 'A', 'K', 'd', 'D', '8', '@',
+                   'P', 'G', 'F', 'U', 'h', 'X', 'e', 'T', 'Z', 'S', 'k', 'O', '$', 'y', 'a', 'L', 'f', '6', '0', 'w',
+                   '9', '&', '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I', 'z', '3', 'j', 'c',
+                   't', 'r', 'l', 'v', 'i', '}', '?', '{', '1', '=', ']', '[', '+', '7', '<', '>', '|', '!', '*', '/',
+                   ';', ':', '~', '-', '.', ' ']
 
     def __init__(self, **kwargs):
         self.margins = kwargs.get('margin', Margin(10, 10, 10, 10))
         self.result = None
         self.im = None
-        self.luminosity = ['H', 'R', 'B', 'E', 'p', 'M', 'q', 'Q', 'N', 'W', 'g', '#', 'm', 'b',
-                           'A', 'K', 'd', 'D', '8', '@', 'P', 'G', 'F', 'U', 'h', 'X', 'e', 'T',
-                           'Z', 'S', 'k', 'O', '$', 'y', 'a', 'L', 'f', '6', '0', 'w', '9', '&',
-                           '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I',
-                           'z', '3', 'j', 'c', 't', 'r', 'l', 'v', 'i', '}', '?', '{', '1', '=',
-                           ']', '[', '+', '7', '<', '>', '|', '!', '*', '/', ';', ':', '~', '-',
-                           '.', ' ']
+        self.luminosity = Asciifier.VALID_CHARS
 
     def generate_luminosity_mapping(self, font_file):
         n = 64
-        try:
-            font = ImageFont.truetype(font_file, int(round(0.8 * n)))
-        except IOError:
-            return
+        font = ImageFont.truetype(font_file, int(round(0.8 * n)))
         image_size = Size(n, n)
-        self.luminosity = []
         intensity = []
-        for c in range(32, 127):
+        for c in Asciifier.VALID_CHARS:
             image = Image.new('RGB', image_size.to_tuple(), ImageColor.getrgb('#ffffff'))
             draw = ImageDraw.Draw(image)
-            draw.text((0, 0), chr(c), font=font, fill=(0, 0, 0))
+            draw.text((0, 0), c, font=font, fill=(0, 0, 0))
             l = 0
             for pixel in image.getdata():
                 r, g, b = pixel
                 l += 0.2126 * r + 0.7152 * g + 0.0722 * b
-            intensity.append({'l': l, 'c': chr(c)})
+            intensity.append({'l': l, 'c': c})
         self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
 
     def to_pdf(self, **kwargs):
         from fpdf import FPDF
         paper_format = kwargs.get('paper_format', 'a4')
-        font_scale = kwargs.get('font_scale', 1.0)
-        font_name = 'Courier'
-        if kwargs.get('font_name') is not None:
-            font_name = kwargs.get('font_name')
+        font_scale = kwargs.get('font_scale', 1)
+        font_name = kwargs.get('font_name')
+        if font_name is not None:
             self.generate_luminosity_mapping(font_name)
         paper = self.PAPER_SIZES[string.lower(paper_format)]
         inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
@@ -121,7 +115,10 @@ class Asciifier:
         pdf.set_creator('asciifier')
         pdf.set_keywords('retro computing art fun')
         pdf.add_page()
-        pdf.add_font(font_name, style='', fname=font_name, uni=True)
+        if font_name is not None:
+            pdf.add_font(font_name, style='', fname=font_name, uni=True)
+        else:
+            font_name = 'Courier'
         pdf.set_font(font_name, '', mm2pt(scale * font_scale))
         for y in range(0, self.im.height):
             yy = offset.y + scale * y
@@ -185,9 +182,7 @@ def main():
     if args.paper is not None:
         paper_format = args.paper
 
-    font_name = 'Courier'
-    if args.paper is not None:
-        font_name = args.font
+    font_name = args.font
 
     if output_type == 'text':
         asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
