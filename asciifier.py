@@ -7,7 +7,6 @@
 # All rights reserved.
 
 from PIL import Image, ImageFont, ImageDraw, ImageColor
-from datetime import datetime
 from math import ceil
 import string
 import argparse
