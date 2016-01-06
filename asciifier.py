@@ -188,7 +188,7 @@ def main():
         if font_paths:
             font_name = font_paths[0]
         else:
-            sys.stderr.write('Font "{}" not found'.format(font_name))
+            sys.stderr.write('Font "{}" not found\n'.format(font_name))
             font_name = None
 
     if output_type == 'text':
