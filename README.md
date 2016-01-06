@@ -29,21 +29,23 @@ to clone the repository into a local folder.
 [python.org download page](https://www.python.org/downloads/).
 Install Python into a folder of your choice, e.g. D:\Python27.
 
-Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow) on the command line by typing:
+Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow) and FPDF on the command line by typing:
 
 ```
 D:\Python27\Scripts\pip.exe install Pillow
 ```
+
+You also need [NumPy](http://www.numpy.org/) but you can't install it via `pip`. Instead get and run the latest numpy installer, e.g. numpy-1.10.2-win32-superpack-python2.7.exe, from the [NumPy project page](http://sourceforge.net/projects/numpy/files/NumPy/).
 
 
 ### Linux
 
 Install Python 2.5 or later with your distribution specific package manager.
 
-Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow):
+Then get the needed Python modules:
 
 ```
-pip install Pillow
+pip install -r requirements.txt
 ```
 
 ## Usage
