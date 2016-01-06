@@ -9,8 +9,6 @@
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from datetime import datetime
 from math import ceil
-from ttfquery import describe, glyphquery, glyph
-from fpdf import fonts, ttfonts
 import string
 import argparse
 
@@ -61,14 +59,11 @@ class Asciifier:
     """ Class to convert a pixel image to ASCII art."""
 
     PAPER_SIZES = {
-        'a6': Size(105, 148),
         'a5': Size(148, 210),
         'a4': Size(210, 297),
         'a3': Size(297, 420),
-        'a2': Size(420, 594),
-        'a1': Size(594, 841),
-        'a0': Size(841, 1189),
-        'letter': Size(215.9, 279.4)
+        'letter': Size(215.9, 279.4),
+        'legal': Size(215.9, 355.6)
     }
     TYPE_CHOICES = ['text', 'postscript', 'pdf']
     PAPER_CHOICES = PAPER_SIZES.keys()
@@ -106,116 +101,36 @@ class Asciifier:
         self.luminosity = map(lambda i: i['c'], sorted(intensity, key=lambda lum: lum['l']))
 
     def to_pdf(self, **kwargs):
-        import zlib
-        paper_type = kwargs.get('paper', 'a4')
-        compress = kwargs.get('compress', True)
+        from fpdf import FPDF
+        paper_format = kwargs.get('paper_format', 'a4')
+        font_scale = kwargs.get('font_scale', 1.0)
         font_name = 'Courier'
         if kwargs.get('font_name') is not None:
             font_name = kwargs.get('font_name')
             self.generate_luminosity_mapping(font_name)
-        paper = self.PAPER_SIZES[string.lower(paper_type)]
+        paper = self.PAPER_SIZES[string.lower(paper_format)]
         inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
                      ceil(paper.height - self.margins.top - self.margins.bottom))
         size = Size(self.im.width, self.im.height)
         scale = inner.width / size.width
         offset = Point(self.margins.left + (inner.width - size.width * scale) / 2,
                        self.margins.bottom + (inner.height - size.height * scale) / 2)
-        stream_lines = []
+        pdf = FPDF(unit='mm', format=paper_format.upper())
+        pdf.set_compression(True)
+        pdf.set_title('ASCII Art')
+        pdf.set_author('Oliver Lau <ola@ct.de> - Heise Medien GmbH & Co. KG')
+        pdf.set_creator('asciifier')
+        pdf.set_keywords('retro computing art fun')
+        pdf.add_page()
+        pdf.add_font(font_name, style='', fname=font_name, uni=True)
+        pdf.set_font(font_name, '', mm2pt(scale * font_scale))
         for y in range(0, self.im.height):
-            yy = offset.y + scale * (self.im.height - y)
+            yy = offset.y + scale * y
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
-                    tj = 'BT /F1 {} Tf {} {} Td ({}) Tj ET'\
-                        .format(scale,
-                                offset.x + x * scale,
-                                yy,
-                                c)
-                    stream_lines.append(tj)
-        stream = '\n'.join(stream_lines)
-        if compress:
-            stream = zlib.compress(stream, 9)
-        glyph_widths = []
-        for ch in self.luminosity:
-            glyph_widths.append('200')
-        blocks = [
-            [
-                '%PDF-1.7',
-                '%{0:c}{1:c}{2:c}'.format(254, 245, 244),
-            ],
-            [
-                '1 0 obj<< /Type/Catalog/Pages 2 0 R >>endobj',
-            ],
-            [
-                '2 0 obj<< /Type/Pages/Count 1 /Kids [3 0 R] >>endobj',
-            ],
-            [
-                '3 0 obj<< /Type/Page',
-                '     /UserUnit 2.834645669',
-                '     /MediaBox [0 0 {} {}]'.format(paper.width, paper.height),
-                '     /Parent 2 0 R',
-                '     /Resources << /Font << /F1 4 0 R >> >>',
-                '     /Contents 5 0 R',
-                '  >>',
-                'endobj'
-            ],
-            [
-                '4 0 obj',
-                '  << /Type/Font /Subtype/TrueType /Name/F1',
-                '     /BaseFont/{}'.format(font_name),
-                '     /FirstChar {} /LastChar {}'.format(ord(min(self.luminosity)), ord(max(self.luminosity))),
-                '     /Widths 7 0 R',
-                '     /FontDescriptor 8 0 R',
-                '     /Encoding/MacRomanEncoding'
-                '  >>',
-                'endobj',
-            ],
-            [
-                '5 0 obj<< /Length {} {}>>stream'.format(len(stream), '/Filter[/FlateDecode]' if compress else ''),
-                stream,
-                'endstream',
-                'endobj'
-            ],
-            [
-                '6 0 obj<<',
-                '  /Producer(ASCIIfier)',
-                '  /Creator(ASCIIfier)',
-                '  /Subject(retro computing)',
-                '  /Keywords(ASCII art fun)',
-                '  /CreationDate(D:{})'.format(datetime.today().strftime('%Y%m%d%H%M%S')),
-                '>>endobj'
-            ],
-            [
-                '7 0 obj [',
-                ' '.join(glyph_widths),
-                ']'
-            ],
-            [
-                '8 0 obj<<',
-                '>>'
-            ]
-        ]
-        blockoffsets = cumsum(map(lambda b: len(b), map(lambda block: '\n'.join(block), blocks)))
-        blockcount = len(blockoffsets)
-        xref = [
-            'xref',
-            '0 {}'.format(blockcount),
-            '{0:010d} 65535 f'.format(0)
-        ]
-        for i in range(0, blockcount):
-            xref += ['{0:010d} 00000 n'.format(blockoffsets[i])]
-        xref += [
-            'trailer<<',
-            '  /Root 1 0 R',
-            '  /Info 6 0 R',
-            '  /Size {}'.format(len(blocks)+1),
-            '>>',
-            'startxref',
-            '{}'.format(blockoffsets[blockcount-1]),
-            '%%EOF'
-        ]
-        blocks.append(xref)
-        return '\n'.join(map(lambda l: '\n'.join(l), blocks))
+                    pdf.text(offset.x + x * scale, yy, c)
+        return pdf.output(dest='S')
 
     def to_postscript(self, **kwargs):
         paper = kwargs.get('paper', 'a4')
@@ -290,13 +205,6 @@ class Asciifier:
 
 
 def main():
-    f = describe.openFont('fonts/Hack-Bold.ttf')
-    n = glyphquery.glyphName(f, 'g')
-    g = glyph.Glyph(n)
-    c = g.calculateContours(f)
-    o = glyph.decomposeOutline(c[1])
-    print o
-
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
     parser.add_argument('image', type=str, help='file name of image to be converted')
     parser.add_argument('--out', type=str, help='file name of postscript file to write.')
@@ -305,6 +213,7 @@ def main():
     parser.add_argument('--font', type=str, help='file name of font to be used.')
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
+    parser.add_argument('--fontscale', type=float, help='factor to scale font by.')
     args = parser.parse_args()
 
     asciifier = Asciifier()
@@ -318,6 +227,10 @@ def main():
     if args.type in ['postscript', 'pdf']:
         output_type = args.type
 
+    font_scale = 1.0
+    if args.fontscale is not None:
+        font_scale = float(args.fontscale)
+
     aspect_ratio = 2.0
     if args.aspect is not None:
         aspect_ratio = args.aspect
@@ -326,9 +239,9 @@ def main():
     if args.resolution is not None:
         resolution = args.resolution
 
-    paper = 'a3'
+    paper_format = 'a3'
     if args.paper is not None:
-        paper = args.paper
+        paper_format = args.paper
 
     font_name = 'Courier'
     if args.paper is not None:
@@ -339,10 +252,10 @@ def main():
         result = asciifier.to_plain_text()
     elif output_type == 'postscript':
         asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_postscript(paper=paper, font_name=font_name)
+        result = asciifier.to_postscript(paper_format=paper_format, font_name=font_name)
     elif output_type == 'pdf':
         asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_pdf(paper=paper, font_name=font_name)
+        result = asciifier.to_pdf(paper_format=paper_format, font_name=font_name, font_scale=font_scale)
     else:
         result = '<invalid type>'
 
