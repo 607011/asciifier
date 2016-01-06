@@ -91,7 +91,7 @@ just give the font file name here, the file location will be automatically detec
 
 `RESOLUTION`: number of characters per line (default: 80)
 
-`PAPER`: paper format (default: a4); only valid for PDF output
+`PAPER`: paper format (default: a3); only valid for PDF output
 
 `ASPECT`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
 
@@ -102,7 +102,7 @@ just give the font file name here, the file location will be automatically detec
 
 #### PDF
 
-Convert image to PDF, fitted to DIN A3 paper (default is A4),
+Convert image to PDF, fitted to DIN A4 paper (default is A3),
 with 120 characters per line (default is 80),
 font size increased by 10 percent (scaled by 1.1),
 built-in default font (Courier) is used:
@@ -111,7 +111,7 @@ built-in default font (Courier) is used:
 ```
 asciifier.py toad.png \
     --out toad.pdf \
-    --paper a3 \
+    --paper a4 \
     --fontscale 1.1 \
     --resolution 120
 ```
