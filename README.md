@@ -6,6 +6,7 @@
 
  - Python 2.5 or later
  - Pillow 3.x
+ - FPDF 1.7.x or later
 
 
 ## Download code
@@ -56,7 +57,8 @@ asciifier.py
   --type {text,postscript,pdf}
   --aspect ASPECT
   --font FONT
-  --paper {a0,a1,a2,a3,a4,letter}
+  --fontscale FONTSCALE
+  --paper {a2,a3,a4,a5,letter,legal}
   --resolution RESOLUTION
   IMAGE
 ```
@@ -67,9 +69,11 @@ asciifier.py
 
 `FONT`: name of font to use; only valid for postscript or pdf output
 
+`FONTSCALE`: scale font by this factor (floating point number, default: 1.0)
+
 `RESOLUTION`: number of characters per line (default: 80)
 
-`PAPER`: paper dimensions (default: a4); only valid for postscript output
+`PAPER`: paper dimensions (default: a4); only valid for postscript and pdf output
 
 `ASPECT`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
 
@@ -80,14 +84,14 @@ asciifier.py
 
 #### PDF
 
-Convert image to PDF, fitted to DIN A2 paper (default is A4),
+Convert image to PDF, fitted to DIN A3 paper (default is A4),
 with 120 characters per line (default is 80);
 type is implicitly determined by file extension:
 
 ```
 asciifier.py toad.png \
              --out toad.pdf \
-             --paper a2 \
+             --paper a3 \
              --resolution 120
 ```
 
