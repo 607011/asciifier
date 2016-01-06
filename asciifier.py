@@ -8,6 +8,8 @@
 
 from PIL import Image, ImageFont, ImageDraw, ImageColor
 from math import ceil
+from ttfquery import findsystem
+import sys
 import string
 import argparse
 
@@ -182,6 +184,14 @@ def main():
         paper_format = args.paper
 
     font_name = args.font
+    if font_name is not None:
+        font_name = font_name.lower()
+        font_paths = filter(lambda font_file: font_file.lower().find(font_name) >= 0, findsystem.findFonts())
+        if font_paths:
+            font_name = font_paths[0]
+        else:
+            sys.stderr.write('Font "{}" not found'.format(font_name))
+            font_name = None
 
     if output_type == 'text':
         asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
