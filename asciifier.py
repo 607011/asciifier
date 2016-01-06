@@ -117,7 +117,7 @@ class Asciifier:
         pdf.set_keywords('retro computing art fun')
         pdf.add_page()
         if font_name is not None:
-            pdf.add_font(font_name, style='', fname=font_name, uni=True)
+            pdf.add_font(font_name, fname=font_name, uni=True)
         else:
             font_name = 'Courier'
         pdf.set_font(font_name, '', mm2pt(scale * font_scale))
