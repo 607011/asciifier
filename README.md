@@ -117,14 +117,16 @@ asciifier.py toad.png \
 ```
 
 
-Convert image to PDF, the true-type font Hack-Bold is used
+Convert image to PDF, the TrueType font Hack-Bold is used
 
 ```
 asciifier.py toad.png \
     --out toad.pdf \
     --font Hack-Bold.ttf
-
 ```
+
+
+**Please note that currently only TrueType fonts are supported.**
 
 
 #### Pure ASCII text
@@ -170,5 +172,4 @@ Result:
                      cGAA@GhkOThPbpgd@Gh$LkZ0c:
                      9dbKKD@POSXU#WmKd8PGk$XT4>
                      CTXUhheTS$OXDdPFheeZSOyfC!
-
 ```
