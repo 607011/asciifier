@@ -7,7 +7,7 @@
  - Python 2.5 or later
  - Pillow 3.x
  - FPDF 1.7.x or later
-
+ - numpy 1.x or later
 
 ## Download code
 
@@ -54,7 +54,6 @@ pip install Pillow
 asciifier.py 
   [-h] [--help]
   --out OUT
-  --type {text,postscript,pdf}
   --aspect ASPECT
   --font FONT
   --fontscale FONTSCALE
@@ -67,13 +66,14 @@ asciifier.py
 
 `OUT`: name of file to write ASCII art to
 
-`FONT`: name of font to use; only valid for postscript or pdf output
+`FONT`: name of font to use; only valid for PDF output; only tested with TTF under Windows;
+just give the font file name here, the file location will be automatically detected
 
 `FONTSCALE`: scale font by this factor (floating point number, default: 1.0)
 
 `RESOLUTION`: number of characters per line (default: 80)
 
-`PAPER`: paper dimensions (default: a4); only valid for postscript and pdf output
+`PAPER`: paper format (default: a4); only valid for PDF output
 
 `ASPECT`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
 
@@ -85,40 +85,40 @@ asciifier.py
 #### PDF
 
 Convert image to PDF, fitted to DIN A3 paper (default is A4),
-with 120 characters per line (default is 80);
-type is implicitly determined by file extension:
+with 120 characters per line (default is 80),
+font size increased by 10 percent (scaled by 1.1),
+built-in default font (Courier) is used:
+
 
 ```
 asciifier.py toad.png \
-             --out toad.pdf \
-             --paper a3 \
-             --resolution 120
+    --out toad.pdf \
+    --paper a3 \
+    --fontscale 1.1 \
+    --resolution 120
 ```
 
-#### Postscript
 
-Convert image to postscript, fitted to DIN A3 paper,
-with 100 characters per line;
-type is implicitly determined by file extension:
+Convert image to PDF, the true-type font Hack-Bold is used
 
 ```
 asciifier.py toad.png \
-             --out toad.ps \
-             --paper a3 \
-             --resolution 100
+    --out toad.pdf \
+    --font Hack-Bold.ttf
+
 ```
+
 
 #### Pure ASCII text
 
 Convert image to ASCII with 69 characters per line;
-assumed aspect ratio of terminal font is 2.1 (default is 2.0);
-type is implicitly determined by file extension:
+assumed aspect ratio of terminal font is 2.4 (default is 2.0):
 
 ```
 asciifier.py toad.png \
-             --out toad.txt \
-             --aspect 2.4 \
-             --resolution 69
+    --out toad.txt \
+    --aspect 2.4 \
+    --resolution 69
 ```
 
 Result:
