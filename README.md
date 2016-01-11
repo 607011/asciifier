@@ -147,7 +147,9 @@ asciifier.py toad.png \
     --colorize
 ```
 
-► [Result as PDF](examples/toad.pdf)
+Result:
+
+![](examples/toad-as-colored-pdf.png)
 
 
 #### Pure ASCII text
