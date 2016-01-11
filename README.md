@@ -103,53 +103,9 @@ PDF output.
 
 ### Examples
 
+Original image:
+
 ![Toad](examples/images/toad.png)
-
-#### PDF
-
-Convert image to PDF, fitted to DIN A4 paper (default is A3),
-with 120 characters per line (default is 80),
-font size increased by 10 percent (scaled by 1.1),
-built-in default font (Courier) is used:
-
-
-```
-asciifier.py toad.png \
-    --out toad.pdf \
-    --paper a4 \
-    --fontscale 1.1 \
-    --resolution 120
-```
-
-
-Convert image to PDF, the TrueType font Hack-Bold is used:
-
-```
-asciifier.py toad.png \
-    --out toad.pdf \
-    --font Hack-Bold.ttf
-```
-
-
-**Please note that currently only TrueType fonts are supported.**
-
-
-Convert image to colored PDF,
-Lucida Sans Typewriter Bold characters enlarged by 16 percent,
-on A3 paper:
-
-```
-asciifier.py toad.png \
-    --out toad.pdf \
-    --paper a3 \
-    --fontscale 1.16 \
-    --font LTYPEB.TTF \
-    --colorize
-```
-
-Result:
-
-![](examples/toad-as-colored-pdf.png)
 
 
 #### Pure ASCII text
@@ -196,3 +152,49 @@ Result:
                      9dbKKD@POSXU#WmKd8PGk$XT4>
                      CTXUhheTS$OXDdPFheeZSOyfC!
 ```
+
+#### PDF
+
+Convert image to PDF, fitted to DIN A4 paper (default is A3),
+with 120 characters per line (default is 80),
+font size increased by 10 percent (scaled by 1.1),
+built-in default font (Courier) is used:
+
+
+```
+asciifier.py toad.png \
+    --out toad.pdf \
+    --paper a4 \
+    --fontscale 1.1 \
+    --resolution 120
+```
+
+
+Convert image to PDF, the TrueType font Hack-Bold is used:
+
+```
+asciifier.py toad.png \
+    --out toad.pdf \
+    --font Hack-Bold.ttf
+```
+
+
+**Please note that currently only TrueType fonts are supported.**
+
+
+Convert image to colored PDF,
+Lucida Sans Typewriter Bold characters enlarged by 16 percent,
+on A3 paper:
+
+```
+asciifier.py toad.png \
+    --out toad.pdf \
+    --paper a3 \
+    --fontscale 1.16 \
+    --font LTYPEB.TTF \
+    --colorize
+```
+
+Result:
+
+![](examples/toad-as-colored-pdf.png)
