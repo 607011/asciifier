@@ -77,6 +77,7 @@ asciifier.py
   --fontscale FONTSCALE
   --paper {a2,a3,a4,a5,letter,legal}
   --resolution RESOLUTION
+  --colorize
   IMAGE
 ```
 
@@ -94,6 +95,10 @@ just give the font file name here, the file location will be automatically detec
 `PAPER`: paper format (default: a3); only valid for PDF output
 
 `ASPECT`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
+
+With `--colorize` the result is a colored ASCII art image where each pixel gets converted into a correspondingly
+colored character randomly chosen from the set 'A', 'C', 'G', 'T'. The `--colorize` may only be used along with
+PDF output.
 
 
 ### Examples
@@ -117,7 +122,7 @@ asciifier.py toad.png \
 ```
 
 
-Convert image to PDF, the TrueType font Hack-Bold is used
+Convert image to PDF, the TrueType font Hack-Bold is used:
 
 ```
 asciifier.py toad.png \
@@ -127,6 +132,22 @@ asciifier.py toad.png \
 
 
 **Please note that currently only TrueType fonts are supported.**
+
+
+Convert image to colored PDF,
+Lucida Sans Typewriter Bold characters enlarged by 16 percent,
+on A3 paper:
+
+```
+asciifier.py toad.png \
+    --out toad.pdf \
+    --paper a3 \
+    --fontscale 1.16 \
+    --font LTYPEB.TTF \
+    --colorize
+```
+
+![Toad](examples/toad.pdf)
 
 
 #### Pure ASCII text
