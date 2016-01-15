@@ -3,7 +3,7 @@
 #
 # Convert an image to ASCII art.
 #
-# Copyright (c) 2015 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG
+# Copyright (c) 2015-2016 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG
 # All rights reserved.
 
 from PIL import Image, ImageFont, ImageDraw, ImageColor
@@ -70,7 +70,6 @@ class Luminosity:
         self.c = c
 
 
-
 class Asciifier:
     """ Class to convert a pixel image to ASCII art."""
 
@@ -125,6 +124,7 @@ class Asciifier:
         scale = inner.width / total.width
         offset = Point(self.margins.left + (inner.width - total.width * scale) / 2,
                        self.margins.bottom + (inner.height - total.height * scale) / 2)
+
         pdf = FPDF(unit='mm', format=paper_format.upper())
         pdf.set_compression(True)
         pdf.set_title('ASCII Art')
@@ -132,11 +132,13 @@ class Asciifier:
         pdf.set_creator('asciifier')
         pdf.set_keywords('retro computing art fun')
         pdf.add_page()
+
         if font_name is not None:
             pdf.add_font(font_name, fname=font_name, uni=True)
         else:
             font_name = 'Courier'
         pdf.set_font(font_name, '', mm2pt(scale * font_scale))
+
         for y in range(0, self.im.height):
             yy = offset.y + scale * y
             for x in range(0, self.im.width):
@@ -148,23 +150,29 @@ class Asciifier:
                         pdf.text(offset.x + x * scale, yy, random.choice(Asciifier.COLOR_CHARS))
                     else:
                         pdf.text(offset.x + x * scale, yy, c)
+
+        crop_area = Margin(offset.y - scale,
+                           offset.x + (self.im.width - 1) * scale + scale * font_scale,
+                           offset.y + (self.im.height - 2) * scale + scale * font_scale,
+                           offset.x)
+
         if kwargs.get('cropmarks', False):
             pdf.set_draw_color(0, 0, 0)
             pdf.set_line_width(pt2mm(0.1))
-            x0 = offset.x
-            y0 = offset.y - scale
-            x1 = x0 + (self.im.width - 1) * scale + scale * font_scale
-            y1 = y0 + (self.im.height - 1) * scale + scale * font_scale
-            for p in [Point(x0, y0), Point(x1, y0), Point(x1, y1), Point(x0, y1)]:
+            for p in [Point(crop_area.left, crop_area.top),
+                      Point(crop_area.right, crop_area.top),
+                      Point(crop_area.right, crop_area.bottom),
+                      Point(crop_area.left, crop_area.bottom)]:
                 pdf.line(p.x - 6, p.y, p.x - 2, p.y)
                 pdf.line(p.x + 2, p.y, p.x + 6, p.y)
                 pdf.line(p.x, p.y - 6, p.x, p.y - 2)
                 pdf.line(p.x, p.y + 2, p.x, p.y + 6)
+
         if kwargs.get('logo'):
             logo_width = 20
             pdf.image(kwargs.get('logo'),
-                      x=(x1 - x0 - logo_width / 2) / 2,
-                      y=y1 + 10,
+                      x=(crop_area.right - crop_area.left - logo_width / 2) / 2,
+                      y=crop_area.bottom + 10,
                       w=logo_width)
 
         return pdf.output(dest='S')
