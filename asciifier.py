@@ -27,7 +27,11 @@ def cumsum(arr):
 
 
 def mm2pt(mm):
-    return 2.834645669 * mm
+    return 72 * mm / 2.54 / 10
+
+
+def pt2mm(mm):
+    return 2.54 * mm / 72 * 10
 
 
 class Size:
@@ -144,6 +148,25 @@ class Asciifier:
                         pdf.text(offset.x + x * scale, yy, random.choice(Asciifier.COLOR_CHARS))
                     else:
                         pdf.text(offset.x + x * scale, yy, c)
+        if kwargs.get('cropmarks', False):
+            pdf.set_draw_color(0, 0, 0)
+            pdf.set_line_width(pt2mm(0.1))
+            x0 = offset.x
+            y0 = offset.y - scale
+            x1 = x0 + (self.im.width - 1) * scale + scale * font_scale
+            y1 = y0 + (self.im.height - 1) * scale + scale * font_scale
+            for p in [Point(x0, y0), Point(x1, y0), Point(x1, y1), Point(x0, y1)]:
+                pdf.line(p.x - 6, p.y, p.x - 2, p.y)
+                pdf.line(p.x + 2, p.y, p.x + 6, p.y)
+                pdf.line(p.x, p.y - 6, p.x, p.y - 2)
+                pdf.line(p.x, p.y + 2, p.x, p.y + 6)
+        if kwargs.get('logo'):
+            logo_width = 20
+            pdf.image(kwargs.get('logo'),
+                      x=(x1 - x0 - logo_width / 2) / 2,
+                      y=y1 + 10,
+                      w=logo_width)
+
         return pdf.output(dest='S')
 
     def to_plain_text(self):
@@ -170,23 +193,20 @@ def main():
     global verbosity
 
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
-    parser.add_argument('image', type=str, help='file name of image to be converted')
-    parser.add_argument('--out', type=str, help='file name of postscript file to write.')
-    parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font.')
+    parser.add_argument('image', type=str, help='file name of image to be converted.')
+    parser.add_argument('--out', type=str, help='name of file to write to.')
+    parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font (text only).')
     parser.add_argument('--font', type=str, help='file name of font to be used.')
-    parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size.')
+    parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size (PDF only).')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
-    parser.add_argument('--fontscale', type=float, help='factor to scale font by.')
-    parser.add_argument('--colorize', nargs='?', const=True, help='generate colored output instead of b/w.')
+    parser.add_argument('--fontscale', type=float, help='factor to scale font by (PDF only).')
+    parser.add_argument('--colorize', nargs='?', const=True, help='generate colored output instead of b/w (PDF only).')
+    parser.add_argument('--cropmarks', nargs='?', const=True, help='draw crop marks (PDF only).')
+    parser.add_argument('--logo', type=str, help='file name of a logo to place on page (PDF only).')
     parser.add_argument('-v', type=int, help='verbosity level.')
     args = parser.parse_args()
 
     asciifier = Asciifier()
-
-    output_type = 'text'
-    if args.out is not None:
-        if args.out.endswith('.pdf'):
-            output_type = 'pdf'
 
     if args.v is not None:
         verbosity = args.v
@@ -209,6 +229,10 @@ def main():
     if args.paper is not None:
         paper_format = args.paper
 
+    cropmarks = args.cropmarks
+
+    logo = args.logo
+
     font_name = args.font
     if font_name is not None:
         font_name = font_name.lower()
@@ -219,14 +243,17 @@ def main():
             sys.stderr.write('Font "{}" not found\n'.format(font_name))
             font_name = None
 
-    if output_type == 'text':
+    if args.out is not None and args.out.endswith('.pdf'):
+        asciifier.process(args.image, resolution=resolution)
+        result = asciifier.to_pdf(paper_format=paper_format,
+                                  font_name=font_name,
+                                  font_scale=font_scale,
+                                  colorize=colorize,
+                                  cropmarks=cropmarks,
+                                  logo=logo)
+    else:
         asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
         result = asciifier.to_plain_text()
-    elif output_type == 'pdf':
-        asciifier.process(args.image, resolution=resolution)
-        result = asciifier.to_pdf(paper_format=paper_format, font_name=font_name, font_scale=font_scale, colorize=colorize)
-    else:
-        result = '<invalid type>'
 
     if args.out is None:
         print(result)
