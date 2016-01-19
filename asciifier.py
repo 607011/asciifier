@@ -81,6 +81,7 @@ class Asciifier:
         'legal': Size(215.9, 355.6)
     }
     PAPER_CHOICES = PAPER_SIZES.keys()
+    ORIENTATION_CHOICES = ['p', 'l']
     VALID_CHARS = ['H', 'R', 'B', 'E', 'p', 'M', 'q', 'Q', 'N', 'W', 'g', '#', 'm', 'b', 'A', 'K', 'd', 'D', '8', '@',
                    'P', 'G', 'F', 'U', 'h', 'X', 'e', 'T', 'Z', 'S', 'k', 'O', '$', 'y', 'a', 'L', 'f', '6', '0', 'w',
                    '9', '&', '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I', 'z', '3', 'j', 'c',
@@ -112,20 +113,28 @@ class Asciifier:
         from fpdf import FPDF
         import random
         paper_format = kwargs.get('paper_format', 'a4')
+        paper = self.PAPER_SIZES[string.lower(paper_format)]
         font_scale = kwargs.get('font_scale', 1)
         font_name = kwargs.get('font_name')
         colorize = kwargs.get('colorize', False)
         if font_name is not None and not colorize:
             self.generate_luminosity_mapping(font_name)
-        paper = self.PAPER_SIZES[string.lower(paper_format)]
+        if self.im.width > self.im.height:
+            orientation = 'l'
+        else:
+            orientation = 'p'
+        orientation = kwargs.get('orientation', orientation)
+        if orientation == 'l':
+            paper.width, paper.height = paper.height, paper.width
+
         inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
                      ceil(paper.height - self.margins.top - self.margins.bottom))
         total = Size(self.im.width, self.im.height)
-        scale = inner.width / total.width
+        scale = min(inner.width, inner.height) / max(total.width, total.height)
         offset = Point(self.margins.left + (inner.width - total.width * scale) / 2,
                        self.margins.bottom + (inner.height - total.height * scale) / 2)
 
-        pdf = FPDF(unit='mm', format=paper_format.upper())
+        pdf = FPDF(unit='mm', format=paper_format.upper(), orientation=orientation.upper())
         pdf.set_compression(True)
         pdf.set_title('ASCII Art')
         pdf.set_author('Oliver Lau <ola@ct.de> - Heise Medien GmbH & Co. KG')
@@ -206,6 +215,7 @@ def main():
     parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font (text only).')
     parser.add_argument('--font', type=str, help='file name of font to be used.')
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size (PDF only).')
+    parser.add_argument('--orientation', type=str, choices=Asciifier.ORIENTATION_CHOICES, help='paper orientation (PDF only).')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
     parser.add_argument('--fontscale', type=float, help='factor to scale font by (PDF only).')
     parser.add_argument('--colorize', nargs='?', const=True, help='generate colored output instead of b/w (PDF only).')
@@ -237,6 +247,8 @@ def main():
     if args.paper is not None:
         paper_format = args.paper
 
+    orientation = args.orientation
+
     cropmarks = args.cropmarks
 
     logo = args.logo
@@ -254,6 +266,7 @@ def main():
     if args.out is not None and args.out.endswith('.pdf'):
         asciifier.process(args.image, resolution=resolution)
         result = asciifier.to_pdf(paper_format=paper_format,
+                                  orientation=orientation,
                                   font_name=font_name,
                                   font_scale=font_scale,
                                   colorize=colorize,
