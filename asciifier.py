@@ -129,10 +129,10 @@ class Asciifier:
 
         inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
                      ceil(paper.height - self.margins.top - self.margins.bottom))
-        total = Size(self.im.width, self.im.height)
-        scale = min(inner.width, inner.height) / max(total.width, total.height)
-        offset = Point(self.margins.left + (inner.width - total.width * scale) / 2,
-                       self.margins.bottom + (inner.height - total.height * scale) / 2)
+        imgpixels = Size(self.im.width, self.im.height)
+        scale = min(inner.width, inner.height) / max(imgpixels.width, imgpixels.height)
+        offset = Point(self.margins.left + (inner.width - imgpixels.width * scale) / 2,
+                       self.margins.bottom + (inner.height - imgpixels.height * scale) / 2)
 
         pdf = FPDF(unit='mm', format=paper_format.upper(), orientation=orientation.upper())
         pdf.set_compression(True)
@@ -161,8 +161,8 @@ class Asciifier:
                         pdf.text(offset.x + x * scale, yy, c)
 
         crop_area = Margin(offset.y - scale,
-                           offset.x + (self.im.width - 1) * scale + scale * font_scale,
-                           offset.y + (self.im.height - 2) * scale + scale * font_scale,
+                           offset.x + (self.im.width - 1 + font_scale) * scale,
+                           offset.y + (self.im.height - 2 + font_scale) * scale,
                            offset.x)
 
         if kwargs.get('cropmarks', False):
