@@ -29,10 +29,10 @@ to clone the repository into a local folder.
 [python.org download page](https://www.python.org/downloads/).
 Install Python into a folder of your choice, e.g. D:\Python27.
 
-Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow) and FPDF on the command line by typing:
+Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow), ttfquery and FPDF on the command line by typing:
 
 ```
-D:\Python27\Scripts\pip.exe install Pillow
+D:\Python27\Scripts\pip.exe install Pillow ttfquery fpdf
 ```
 
 You also need [NumPy](http://www.numpy.org/) but you can't install it via `pip`. Instead get and run the latest numpy installer, e.g. numpy-1.10.2-win32-superpack-python2.7.exe, from the [NumPy project page](http://sourceforge.net/projects/numpy/files/NumPy/).
@@ -76,6 +76,7 @@ asciifier.py
   --font FONT
   --fontscale FONTSCALE
   --paper {a2,a3,a4,a5,letter,legal}
+  --orientation {l,p}
   --resolution RESOLUTION
   --colorize
   IMAGE
@@ -96,9 +97,12 @@ just give the font file name here, the file location will be automatically detec
 
 `ASPECT`: estimated aspect ratio of terminal font (default: 2.0); only valid for text output
 
-With `--colorize` the result is a colored ASCII art image where each pixel gets converted into a correspondingly
+With `--colorize` (PDF only) the result is a colored ASCII art image where each pixel gets converted into a correspondingly
 colored character randomly chosen from the set 'A', 'C', 'G', 'T'. The `--colorize` may only be used along with
 PDF output.
+
+With `--orientation` (PDF only) you can overwrite the otherwise automatically selected paper orientation.
+Select `p` for portrait and `l` for landscape.
 
 
 ### Examples
