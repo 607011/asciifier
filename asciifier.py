@@ -119,11 +119,11 @@ class Asciifier:
         colorize = kwargs.get('colorize', False)
         if font_name is not None and not colorize:
             self.generate_luminosity_mapping(font_name)
+        orientation = kwargs.get('orientation')
         if self.im.width > self.im.height:
             orientation = 'l'
         else:
             orientation = 'p'
-        orientation = kwargs.get('orientation', orientation)
         if orientation == 'l':
             paper.width, paper.height = paper.height, paper.width
 
