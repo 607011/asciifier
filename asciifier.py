@@ -10,7 +10,6 @@ from PIL import Image, ImageFont, ImageDraw, ImageColor
 from math import ceil
 from ttfquery import findsystem
 import sys
-import string
 import argparse
 
 
@@ -111,60 +110,36 @@ class Asciifier:
 
     def to_pdf(self, **kwargs):
         from fpdf import FPDF
-        import random
-        paper_format = kwargs.get('paper_format', 'a4')
-        paper = self.PAPER_SIZES[string.lower(paper_format)]
-        font_scale = kwargs.get('font_scale', 1)
+        pdf = FPDF(unit='mm', format='a4', orientation='P')
+        pdf.set_compression(True)
+        pdf.set_title('ASCII Art')
+        pdf.set_author('Oliver Lau')
+        pdf.set_keywords('retro computing art fun')
+        pdf.add_page()
         font_name = kwargs.get('font_name')
-        colorize = kwargs.get('colorize', False)
-        if font_name is not None and not colorize:
+        if font_name:
             self.generate_luminosity_mapping(font_name)
-        if self.im.width > self.im.height:
-            orientation = 'l'
+            pdf.add_font(font_name, fname=font_name, uni=True)
         else:
-            orientation = 'p'
-        orientation = kwargs.get('orientation', orientation)
-        if orientation == 'l':
-            paper.width, paper.height = paper.height, paper.width
-
+            font_name = 'Courier'
+        paper = Size(210, 297)
         inner = Size(ceil(paper.width - self.margins.left - self.margins.right),
                      ceil(paper.height - self.margins.top - self.margins.bottom))
         imgpixels = Size(self.im.width, self.im.height)
         scale = min(inner.width, inner.height) / max(imgpixels.width, imgpixels.height)
         offset = Point(self.margins.left + (inner.width - imgpixels.width * scale) / 2,
                        self.margins.bottom + (inner.height - imgpixels.height * scale) / 2)
-
-        pdf = FPDF(unit='mm', format=paper_format.upper(), orientation=orientation.upper())
-        pdf.set_compression(True)
-        pdf.set_title('ASCII Art')
-        pdf.set_author('Oliver Lau <ola@ct.de> - Heise Medien GmbH & Co. KG')
-        pdf.set_creator('asciifier')
-        pdf.set_keywords('retro computing art fun')
-        pdf.add_page()
-
-        if font_name is not None:
-            pdf.add_font(font_name, fname=font_name, uni=True)
-        else:
-            font_name = 'Courier'
-        pdf.set_font(font_name, '', mm2pt(scale * font_scale))
-
+        pdf.set_font(font_name, '', mm2pt(scale))
         for y in range(0, self.im.height):
             yy = offset.y + scale * y
             for x in range(0, self.im.width):
                 c = self.result[x][y]
                 if c != ' ':
-                    if colorize is True:
-                        r, g, b = self.im.getpixel((x, y))
-                        pdf.set_text_color(r, g, b)
-                        pdf.text(offset.x + x * scale, yy, random.choice(Asciifier.COLOR_CHARS))
-                    else:
-                        pdf.text(offset.x + x * scale, yy, c)
-
+                    pdf.text(offset.x + x * scale, yy, c)
         crop_area = Margin(offset.y - scale,
-                           offset.x + (self.im.width - 1 + font_scale) * scale,
-                           offset.y + (self.im.height - 2 + font_scale) * scale,
+                           offset.x + (self.im.width - 1) * scale,
+                           offset.y + (self.im.height - 2) * scale,
                            offset.x)
-
         if kwargs.get('cropmarks', False):
             pdf.set_draw_color(0, 0, 0)
             pdf.set_line_width(pt2mm(0.1))
@@ -176,34 +151,41 @@ class Asciifier:
                 pdf.line(p.x + 2, p.y, p.x + 6, p.y)
                 pdf.line(p.x, p.y - 6, p.x, p.y - 2)
                 pdf.line(p.x, p.y + 2, p.x, p.y + 6)
-
         if kwargs.get('logo'):
             logo_width = 20
             pdf.image(kwargs.get('logo'),
                       x=(crop_area.right - crop_area.left - logo_width / 2) / 2,
                       y=crop_area.bottom + 10,
                       w=logo_width)
-
         return pdf.output(dest='S')
 
     def to_plain_text(self):
         txt = zip(*self.result)
-        return '\n'.join([''.join(line).rstrip() for line in txt])
+        return '\n'\
+            .join([''
+                  .join(line).rstrip()
+                   for line in txt])
 
     def process(self, image_filename, **kwargs):
         self.im = Image.open(image_filename)
-        if 'aspect_ratio' in kwargs:
-            self.im = self.im.resize((int(self.im.width * kwargs['aspect_ratio']), self.im.height), Image.BILINEAR)
+        stretch = kwargs.get('stretch')
+        if stretch:
+            self.im = self.im.resize(
+                (int(self.im.width * stretch), self.im.height),
+                resample=Image.BILINEAR)
         resolution = kwargs.get('resolution', 80)
-        self.im.thumbnail((resolution, self.im.height), Image.ANTIALIAS)
+        self.im.thumbnail(
+            (resolution, self.im.height),
+            Image.ANTIALIAS)
         w, h = self.im.size
-        nchars = len(self.luminosity)
+        nchars = len(Asciifier.VALID_CHARS)
         self.result = [a[:] for a in [[' '] * h] * w]
         for x in range(0, w):
             for y in range(0, h):
                 r, g, b = self.im.getpixel((x, y))
                 l = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                self.result[x][y] = self.luminosity[int(l * nchars / 255)]
+                self.result[x][y] =\
+                    self.luminosity[int(l * nchars / 255)]
 
 
 def main():
@@ -212,7 +194,7 @@ def main():
     parser = argparse.ArgumentParser(description='Convert images to ASCII art.')
     parser.add_argument('image', type=str, help='file name of image to be converted.')
     parser.add_argument('--out', type=str, help='name of file to write to.')
-    parser.add_argument('--aspect', type=float, help='aspect ratio of terminal font (text only).')
+    parser.add_argument('--stretch', type=float, help='widen terminal font by this factor (text only).')
     parser.add_argument('--font', type=str, help='file name of font to be used.')
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size (PDF only).')
     parser.add_argument('--orientation', type=str, choices=Asciifier.ORIENTATION_CHOICES, help='paper orientation (PDF only).')
@@ -235,9 +217,9 @@ def main():
     if args.fontscale is not None:
         font_scale = float(args.fontscale)
 
-    aspect_ratio = 2.0
-    if args.aspect is not None:
-        aspect_ratio = args.aspect
+    stretch = 2.0
+    if args.stretch is not None:
+        stretch = args.stretch
 
     resolution = 80
     if args.resolution is not None:
@@ -273,7 +255,7 @@ def main():
                                   cropmarks=cropmarks,
                                   logo=logo)
     else:
-        asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
+        asciifier.process(args.image, resolution=resolution, stretch=stretch)
         result = asciifier.to_plain_text()
 
     if args.out is None:
