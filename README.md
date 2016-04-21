@@ -42,6 +42,20 @@ You also need [NumPy](http://www.numpy.org/) but you can't install it via `pip`.
 
 Install Python 2.5 or later and the development packages for jpeg, zlib and freetype with your distribution specific package manager.
 
+#### Ubuntu 14.10
+
+Install required packages:
+
+```
+sudo apt-get install python-all-dev python-pip libjpeg-dev libfreetype6-dev
+```
+
+Then install the needed Python modules:
+
+```
+sudo pip install -r requirements.txt
+```
+
 #### CentOS 7
 
 Install required packages:
