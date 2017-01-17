@@ -12,6 +12,7 @@ from ttfquery import findsystem
 import sys
 import string
 import argparse
+import random
 
 
 verbosity = 0
@@ -82,11 +83,7 @@ class Asciifier:
     }
     PAPER_CHOICES = PAPER_SIZES.keys()
     ORIENTATION_CHOICES = ['p', 'l']
-    VALID_CHARS = ['H', 'R', 'B', 'E', 'p', 'M', 'q', 'Q', 'N', 'W', 'g', '#', 'm', 'b', 'A', 'K', 'd', 'D', '8', '@',
-                   'P', 'G', 'F', 'U', 'h', 'X', 'e', 'T', 'Z', 'S', 'k', 'O', '$', 'y', 'a', 'L', 'f', '6', '0', 'w',
-                   '9', '&', '5', 'Y', 'x', '4', 'n', 's', 'C', '%', 'V', 'o', '2', 'u', 'J', 'I', 'z', '3', 'j', 'c',
-                   't', 'r', 'l', 'v', 'i', '}', '?', '{', '1', '=', ']', '[', '+', '7', '<', '>', '|', '!', '*', '/',
-                   ';', ':', '~', '-', '.', ' ']
+    VALID_CHARS = ['0', '1', ' ']
     COLOR_CHARS = ['A', 'C', 'G', 'T']
 
     def __init__(self, **kwargs):
@@ -203,7 +200,10 @@ class Asciifier:
             for y in range(0, h):
                 r, g, b = self.im.getpixel((x, y))
                 l = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                self.result[x][y] = self.luminosity[int(l * nchars / 255)]
+                res = self.luminosity[int(l * nchars / 255)]
+                if res == '0' and random.random() > 0.5:
+                    res = '1'
+                self.result[x][y] = res
 
 
 def main():
