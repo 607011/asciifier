@@ -78,6 +78,22 @@ sudo pip install Pillow
 ```
 
 
+### macOS
+
+#### macOS 10.12 (Sierra)
+
+Install Python installer:
+
+```
+sudo easy_install pip
+```
+
+Then install python modules:
+
+```
+sudo pip install Pillow ttfquery fpdf
+```
+
 ## Usage
 
 ### General usage
