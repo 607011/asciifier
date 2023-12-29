@@ -1,4 +1,0 @@
-Pillow>=3.0
-fpdf>=1.7
-ttfquery>=1.0.3
-numpy>=1.0

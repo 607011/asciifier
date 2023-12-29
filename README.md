@@ -23,75 +23,10 @@ to clone the repository into a local folder.
 
 ## Installation
 
-### Windows
-
-[Get Python 2.7.11](https://www.python.org/downloads/release/python-2711/) or later from
-[python.org download page](https://www.python.org/downloads/).
-Install Python into a folder of your choice, e.g. D:\Python27.
-
-Then install the [Python Imaging Library](https://github.com/python-pillow/Pillow), ttfquery and FPDF on the command line by typing:
-
 ```
-D:\Python27\Scripts\pip.exe install Pillow ttfquery fpdf
-```
-
-You also need [NumPy](http://www.numpy.org/) but you can't install it via `pip`. Instead get and run the latest numpy installer, e.g. numpy-1.10.2-win32-superpack-python2.7.exe, from the [NumPy project page](http://sourceforge.net/projects/numpy/files/NumPy/).
-
-
-### Linux
-
-Install Python 2.5 or later and the development packages for jpeg, zlib and freetype with your distribution specific package manager.
-
-#### Ubuntu 14.10
-
-Install required packages:
-
-```
-sudo apt-get install python-all-dev python-pip libjpeg-dev libfreetype6-dev
-```
-
-Then install the needed Python modules:
-
-```
-sudo pip install -r requirements.txt
-```
-
-#### CentOS 7
-
-Install required packages:
-
-```
-sudo yum install python2 python2-devel python-setuptools libjepg-devel zlib-devel freetype-devel
-```
-
-Then install the needed Python modules:
-
-```
-sudo pip install -r requirements.txt
-```
-
-If you get an error like "The _imagingft C module is not installed" when running asciifier.py, you have to reinstall Pillow:
-
-```
-sudo pip uninstall Pillow
-sudo pip install Pillow
-```
-
-
-### macOS
-
-#### macOS 10.12 (Sierra)
-
-Install Python installer:
-
-```
-sudo easy_install pip
-```
-
-Then install python modules:
-
-```
-sudo pip install Pillow ttfquery fpdf
+git clone https://github.com/607011/asciifier.git
+cd ascifiier
+pipenv install
 ```
 
 ## Usage
@@ -109,6 +44,7 @@ asciifier.py
   --orientation {l,p}
   --resolution RESOLUTION
   --colorize
+  --invert
   IMAGE
 ```
 
@@ -130,6 +66,8 @@ just give the font file name here, the file location will be automatically detec
 With `--colorize` (PDF only) the result is a colored ASCII art image where each pixel gets converted into a correspondingly
 colored character randomly chosen from the set 'A', 'C', 'G', 'T'. The `--colorize` may only be used along with
 PDF output.
+
+With `--invert` the image will be inverted before processing.
 
 With `--orientation` (PDF only) you can overwrite the otherwise automatically selected paper orientation.
 Select `p` for portrait and `l` for landscape.
