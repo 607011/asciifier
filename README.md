@@ -11,11 +11,11 @@
 
 ## Download code
 
-[Download asciifier.py](https://raw.githubusercontent.com/ola-ct/asciifier/master/asciifier.py) from the
-[ASCIIfier repository](https://github.com/ola-ct/asciifier), or do
+[Download asciifier.py](https://raw.githubusercontent.com/607011/asciifier/master/asciifier.py) from the
+[ASCIIfier repository](https://github.com/607011/asciifier), or do
 
 ```
-git clone https://github.com/ola-ct/asciifier.git
+git clone https://github.com/607011/asciifier.git
 ```
 
 to clone the repository into a local folder.
