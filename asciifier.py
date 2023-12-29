@@ -6,7 +6,7 @@
 # Copyright (c) 2015-2016 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG
 # All rights reserved.
 
-from PIL import Image, ImageFont, ImageDraw, ImageColor
+from PIL import Image, ImageFont, ImageDraw, ImageColor, ImageOps
 from math import ceil
 from ttfquery import findsystem
 import sys
@@ -195,7 +195,11 @@ class Asciifier:
         if 'aspect_ratio' in kwargs:
             self.im = self.im.resize((int(self.im.width * kwargs['aspect_ratio']), self.im.height), Image.BILINEAR)
         resolution = kwargs.get('resolution', 80)
-        self.im.thumbnail((resolution, self.im.height), Image.ANTIALIAS)
+        self.im.thumbnail((resolution, self.im.height), Image.BILINEAR)
+        self.im = self.im.convert('RGB')
+        invert = kwargs.get('invert', False)
+        if invert:
+            self.im = ImageOps.invert(self.im)
         w, h = self.im.size
         nchars = len(self.luminosity)
         self.result = [a[:] for a in [[' '] * h] * w]
@@ -217,6 +221,7 @@ def main():
     parser.add_argument('--paper', type=str, choices=Asciifier.PAPER_CHOICES, help='paper size (PDF only).')
     parser.add_argument('--orientation', type=str, choices=Asciifier.ORIENTATION_CHOICES, help='paper orientation (PDF only).')
     parser.add_argument('--resolution', type=int, help='number of characters per line.')
+    parser.add_argument('--invert', action='store_true', help='invert image before processing')
     parser.add_argument('--fontscale', type=float, help='factor to scale font by (PDF only).')
     parser.add_argument('--colorize', nargs='?', const=True, help='generate colored output instead of b/w (PDF only).')
     parser.add_argument('--cropmarks', nargs='?', const=True, help='draw crop marks (PDF only).')
@@ -251,6 +256,8 @@ def main():
 
     cropmarks = args.cropmarks
 
+    invert = args.invert
+
     logo = args.logo
 
     font_name = args.font
@@ -264,7 +271,7 @@ def main():
             font_name = None
 
     if args.out is not None and args.out.endswith('.pdf'):
-        asciifier.process(args.image, resolution=resolution)
+        asciifier.process(args.image, resolution=resolution, invert=invert)
         result = asciifier.to_pdf(paper_format=paper_format,
                                   orientation=orientation,
                                   font_name=font_name,
@@ -273,7 +280,7 @@ def main():
                                   cropmarks=cropmarks,
                                   logo=logo)
     else:
-        asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio)
+        asciifier.process(args.image, resolution=resolution, aspect_ratio=aspect_ratio, invert=invert)
         result = asciifier.to_plain_text()
 
     if args.out is None:
