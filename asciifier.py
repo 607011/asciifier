@@ -17,15 +17,6 @@ import argparse
 verbosity = 0
 
 
-def cumsum(arr):
-    s = 0
-    result = []
-    for x in arr:
-        s += x
-        result.append(s)
-    return result
-
-
 def mm2pt(mm):
     return 72 * mm / 2.54 / 10
 
