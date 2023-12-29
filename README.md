@@ -77,7 +77,7 @@ Select `p` for portrait and `l` for landscape.
 
 Original image:
 
-![Toad](examples/images/toad.png)
+![toad](https://github.com/607011/asciifier/assets/2240271/05e21e26-1dbb-4934-a006-c195dc2a29ed)
 
 
 #### Pure ASCII text
@@ -169,4 +169,4 @@ asciifier.py toad.png \
 
 Result:
 
-![](examples/toad-as-colored-pdf.png)
+![toad-as-colored-pdf](https://github.com/607011/asciifier/assets/2240271/d426e277-c303-41bd-b066-5d1599f319aa)
