@@ -104,7 +104,7 @@ class Asciifier:
         from fpdf import FPDF
         import random
         paper_format = kwargs.get('paper_format', 'a4')
-        paper = self.PAPER_SIZES[string.lower(paper_format)]
+        paper = self.PAPER_SIZES[paper_format.lower()]
         font_scale = kwargs.get('font_scale', 1)
         font_name = kwargs.get('font_name')
         colorize = kwargs.get('colorize', False)
